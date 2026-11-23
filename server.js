@@ -194,7 +194,7 @@ app.post('/api/ai',auth,async(req,res)=>{
  try{
   const response=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${process.env.AI_API_KEY}`},body:JSON.stringify({model:process.env.AI_MODEL||'gpt-4o-mini',messages:[{role:'system',content:`تو آموزگار مهربان و دقیق دبستان ایران هستی. به فارسی ساده و متناسب پایه ${req.user.grade||'ابتدایی'} پاسخ بده. ریاضی را مرحله‌ای توضیح بده و پاسخ را بدون سرزنش آموزش بده.`},{role:'user',content:message}],temperature:0.5})});
   const data=await response.json();if(!response.ok)throw new Error(data.error?.message||'AI request failed');res.json({answer:data.choices?.[0]?.message?.content||'پاسخی دریافت نشد.'});
- }catch(e){console.error('AI request failed:', e.message);res.status(502).json({error:'ارتباط با دستیار هوشمند برقرار نشد. مدیر سامانه باید گزارش خطای سرور را بررسی کند.'});}
+ }catch(e){const detail=String(e.message||'');console.error('AI request failed:',detail);if(/no credits remaining|insufficient_quota|billing|quota/i.test(detail)){return res.status(503).json({error:'اعتبار سرویس هوش مصنوعی تمام شده است. مدیر سامانه باید از پنل رسمی OpenAI اعتبار API تهیه کند؛ پس از آن دستیار دوباره فعال می‌شود.'});}if(/invalid_api_key|incorrect api key|unauthorized/i.test(detail)){return res.status(503).json({error:'کلید API معتبر نیست. مدیر سامانه باید مقدار AI_API_KEY را در تنظیمات امن سرور بررسی کند.'});}res.status(502).json({error:'ارتباط با سرویس هوش مصنوعی برقرار نشد. مدیر سامانه گزارش خطای سرور را بررسی کند.'});}
 });
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.listen(PORT,()=>console.log(`School Smart running at http://localhost:${PORT}`));
