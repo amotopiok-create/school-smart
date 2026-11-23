@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS submissions (
  UNIQUE(assignment_id,student_id)
 );
 `);
+// Safe schema upgrade for existing installations.
+const userColumns = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
+if (!userColumns.includes('approved')) db.exec('ALTER TABLE users ADD COLUMN approved INTEGER NOT NULL DEFAULT 1');
 const count = db.prepare('SELECT COUNT(*) n FROM users').get().n;
 if (!count) {
  const hash = bcrypt.hashSync('Admin12345!', 12);
@@ -73,7 +76,7 @@ app.post('/api/register',(req,res)=>{
  if(!fullName||!username||!password||password.length<8) return res.status(400).json({error:'نام، نام کاربری و رمز حداقل ۸ کاراکتری لازم است.'});
  if(role!=='student') return res.status(403).json({error:'ثبت‌نام عمومی فقط برای دانش‌آموز فعال است.'});
  try {
-  const info=db.prepare('INSERT INTO users(full_name,username,password_hash,role,grade,class_name) VALUES(?,?,?,?,?,?)')
+  const info=db.prepare('INSERT INTO users(full_name,username,password_hash,role,grade,class_name,approved) VALUES(?,?,?,?,?,?,0)')
    .run(fullName.trim(),username.trim(),bcrypt.hashSync(password,12),'student',Number(grade)||null,className||'');
   res.status(201).json({ok:true,id:info.lastInsertRowid});
  } catch(e){ res.status(409).json({error:'این نام کاربری قبلاً ثبت شده است.'}); }
@@ -82,6 +85,7 @@ app.post('/api/login',(req,res)=>{
  const {username,password}=req.body||{};
  const user=db.prepare('SELECT * FROM users WHERE username=?').get(username||'');
  if(!user||!bcrypt.compareSync(password||'',user.password_hash)) return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
+ if(!user.approved) return res.status(403).json({error:'حساب شما هنوز توسط مدرسه تأیید نشده است.'});
  const token=jwt.sign({id:user.id,name:user.full_name,role:user.role,grade:user.grade,className:user.class_name},SECRET,{expiresIn:'8h'});
  res.cookie('school_token',token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:8*60*60*1000});
  res.json({user:{id:user.id,name:user.full_name,role:user.role,grade:user.grade,className:user.class_name}});
@@ -96,13 +100,18 @@ app.get('/api/dashboard',auth,(req,res)=>{
  res.json({announcements,assignments,stats,grades});
 });
 app.get('/api/users',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const rows=db.prepare('SELECT id,full_name,username,role,grade,class_name,created_at FROM users ORDER BY role,full_name').all();res.json({users:rows});
+ const rows=db.prepare('SELECT id,full_name,username,role,grade,class_name,approved,created_at FROM users ORDER BY approved,role,full_name').all();res.json({users:rows});
 });
 app.post('/api/users',auth,roles('admin','deputy'),(req,res)=>{
  const {fullName,username,password,role,grade,className}=req.body||{};
  if(!fullName||!username||!password||password.length<8||!['student','teacher','deputy','admin'].includes(role)) return res.status(400).json({error:'اطلاعات کاربر کامل یا معتبر نیست.'});
  try{db.prepare('INSERT INTO users(full_name,username,password_hash,role,grade,class_name) VALUES(?,?,?,?,?,?)').run(fullName,username,bcrypt.hashSync(password,12),role,Number(grade)||null,className||'');res.json({ok:true});}
  catch{res.status(409).json({error:'نام کاربری تکراری است.'});}
+});
+app.post('/api/users/:id/approve',auth,roles('admin','deputy'),(req,res)=>{
+ const result=db.prepare("UPDATE users SET approved=1 WHERE id=? AND role='student'").run(Number(req.params.id));
+ if(!result.changes)return res.status(404).json({error:'درخواست دانش‌آموز پیدا نشد.'});
+ res.json({ok:true});
 });
 app.delete('/api/users/:id',auth,roles('admin'),(req,res)=>{if(Number(req.params.id)===req.user.id)return res.status(400).json({error:'حذف حساب واردشده ممکن نیست.'});db.prepare('DELETE FROM users WHERE id=?').run(req.params.id);res.json({ok:true});});
 app.post('/api/announcements',auth,roles('admin','deputy','teacher'),(req,res)=>{
@@ -116,6 +125,12 @@ app.post('/api/assignments',auth,roles('admin','deputy','teacher'),(req,res)=>{
 app.post('/api/grades',auth,roles('admin','deputy','teacher'),(req,res)=>{
  const {studentId,subject,score,note}=req.body||{};if(!studentId||!subject||score===''||Number(score)<0||Number(score)>20)return res.status(400).json({error:'نمره باید بین صفر تا ۲۰ باشد.'});
  db.prepare('INSERT INTO grades(student_id,subject,score,note,teacher_id) VALUES(?,?,?,?,?)').run(Number(studentId),subject,Number(score),note||'',req.user.id);res.json({ok:true});
+});
+app.get('/api/attendance',auth,roles('admin','deputy','teacher'),(req,res)=>{
+ const day=/^\\d{4}-\\d{2}-\\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
+ const students=db.prepare("SELECT id,full_name,grade,class_name FROM users WHERE role='student' AND approved=1 ORDER BY grade,class_name,full_name").all();
+ const rows=db.prepare("SELECT a.student_id,a.status,u.full_name,u.class_name FROM attendance a JOIN users u ON u.id=a.student_id WHERE a.day=? ORDER BY u.grade,u.class_name,u.full_name").all(day);
+ res.json({day,students,rows});
 });
 app.post('/api/attendance',auth,roles('admin','deputy','teacher'),(req,res)=>{
  const {studentId,day,status}=req.body||{};if(!studentId||!day||!['present','absent','late'].includes(status))return res.status(400).json({error:'اطلاعات حضور و غیاب نامعتبر است.'});
