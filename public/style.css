@@ -15,3 +15,6 @@ body.dark{--bg:#0d1629;--ink:#eaf0fb;--muted:#9aa8bd;--card:rgba(24,38,64,.9);--
 .welcome-strip{display:flex;justify-content:space-between;align-items:center;padding:18px 21px;margin-bottom:18px;border-radius:18px;background:linear-gradient(115deg,#13284a,#167f83);color:#fff;box-shadow:0 12px 28px #153b4b22}.welcome-strip b,.welcome-strip span{display:block}.welcome-strip b{font-size:16px}.welcome-strip div span{font-size:11px;opacity:.8;margin-top:4px}.strip-spark{font-size:27px;color:#f2c66e}
 .login-card .demo-note{line-height:1.9}.sidebar .nav-item{white-space:nowrap}.register-card>h2{margin:8px 0}.register-card>.muted{margin-bottom:18px}
 @media(max-width:850px){.welcome-points{margin-top:15px}.welcome-strip{padding:15px}.welcome-strip b{font-size:14px}}
+
+/* Role selection and secure administrator login */
+.fixed-email{padding:12px 14px;border:1px solid #8aa7bf55;border-radius:12px;background:#e9f2f7;color:#17344d;font-size:13px;direction:rtl;margin:10px 0 14px}.dark .fixed-email{background:#1b3048;color:#e8f3ff;border-color:#ffffff22}#adminCodeForm{margin-top:14px}#adminCodeForm .text-btn{margin-top:8px}#loginRole{width:100%}
