@@ -9,7 +9,8 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
-const db = new Database('school.db');
+const dbPath = process.env.DATABASE_PATH || (process.env.VERCEL ? '/tmp/school.db' : path.join(__dirname, 'school.db'));
+const db = new Database(dbPath);
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || 'development-only-change-this-secret';
 app.use(helmet({ contentSecurityPolicy: false }));
