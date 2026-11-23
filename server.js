@@ -125,7 +125,7 @@ app.post('/api/admin/verify-code',(req,res)=>{
 });
 app.post('/api/login',(req,res)=>{
  const {username,password,role}=req.body||{};
- if(!['student','deputy'].includes(role))return res.status(403).json({error:'برای این نقش از روش ورود مخصوص خودش استفاده کنید.'});
+ if(!['student','teacher','deputy'].includes(role))return res.status(403).json({error:'برای این نقش از روش ورود مخصوص خودش استفاده کنید.'});
  const user=db.prepare('SELECT * FROM users WHERE username=? AND role=?').get(username||'',role);
  if(!user||!bcrypt.compareSync(password||'',user.password_hash)) return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
  if(!user.approved) return res.status(403).json({error:'حساب شما هنوز توسط مدرسه تأیید نشده است.'});
