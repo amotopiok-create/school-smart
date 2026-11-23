@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const path = require('path');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -22,6 +23,10 @@ CREATE TABLE IF NOT EXISTS users (
  id INTEGER PRIMARY KEY AUTOINCREMENT, full_name TEXT NOT NULL, username TEXT UNIQUE NOT NULL,
  password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('student','teacher','admin','deputy')),
  grade INTEGER, class_name TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS admin_login_codes (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, code_hash TEXT NOT NULL, admin_name TEXT NOT NULL,
+ expires_at INTEGER NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS announcements (
  id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, body TEXT NOT NULL,
@@ -81,9 +86,47 @@ app.post('/api/register',(req,res)=>{
   res.status(201).json({ok:true,id:info.lastInsertRowid});
  } catch(e){ res.status(409).json({error:'این نام کاربری قبلاً ثبت شده است.'}); }
 });
+const adminEmail = 'amotopiok@gmail.com';
+const adminCodeRequests = new Map();
+function hashAdminCode(code){return crypto.createHmac('sha256',SECRET).update(code).digest('hex');}
+app.post('/api/admin/request-code',async(req,res)=>{
+ const name=String(req.body?.name||'').trim().slice(0,60);
+ if(name.length<2)return res.status(400).json({error:'نام مدیر را وارد کنید.'});
+ const ip=req.ip||'unknown', now=Date.now(), last=adminCodeRequests.get(ip)||0;
+ if(now-last<60_000)return res.status(429).json({error:'برای دریافت کد جدید کمی صبر کنید.'});
+ if(!process.env.RESEND_API_KEY||!process.env.MAIL_FROM)return res.status(503).json({error:'ارسال ایمیل هنوز تنظیم نشده است. مدیر فنی باید RESEND_API_KEY و MAIL_FROM را در تنظیمات امن Vercel وارد کند.'});
+ adminCodeRequests.set(ip,now);
+ const code=String(crypto.randomInt(100000,1000000));
+ db.prepare('DELETE FROM admin_login_codes').run();
+ db.prepare('INSERT INTO admin_login_codes(code_hash,admin_name,expires_at,created_at) VALUES(?,?,?,?)').run(hashAdminCode(code),name,now+10*60*1000,now);
+ try{
+  const mail=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({from:process.env.MAIL_FROM,to:[adminEmail],subject:'کد ورود مدیر سامانه مدرسه قاضی‌زاده',text:'کد ورود شما: '+code+'\nاین کد تا ۱۰ دقیقه معتبر است. اگر شما درخواست نداده‌اید، این پیام را نادیده بگیرید.',html:'<div dir="rtl" style="font-family:Arial,sans-serif"><h2>ورود مدیر سامانه مدرسه قاضی‌زاده</h2><p>کد یک‌بارمصرف شما:</p><div style="font-size:30px;font-weight:bold;letter-spacing:8px">'+code+'</div><p>این کد تا ۱۰ دقیقه معتبر است.</p></div>'})});
+  const result=await mail.json().catch(()=>({}));
+  if(!mail.ok){db.prepare('DELETE FROM admin_login_codes').run();return res.status(502).json({error:'ارسال ایمیل ناموفق بود. تنظیمات فرستنده را بررسی کنید.'});}
+  res.json({ok:true,message:'کد ورود به ایمیل ثابت مدیر ارسال شد.'});
+ }catch(e){db.prepare('DELETE FROM admin_login_codes').run();res.status(502).json({error:'ارتباط با سرویس ایمیل برقرار نشد.'});}
+});
+app.post('/api/admin/verify-code',(req,res)=>{
+ const code=String(req.body?.code||'').trim(), now=Date.now();
+ const row=db.prepare('SELECT * FROM admin_login_codes ORDER BY id DESC LIMIT 1').get();
+ if(!row||row.expires_at<now||row.attempts>=5)return res.status(401).json({error:'کد منقضی شده یا معتبر نیست. دوباره کد بگیرید.'});
+ const expected=Buffer.from(row.code_hash), actual=Buffer.from(hashAdminCode(code));
+ if(expected.length!==actual.length||!crypto.timingSafeEqual(expected,actual)){
+  db.prepare('UPDATE admin_login_codes SET attempts=attempts+1 WHERE id=?').run(row.id);
+  return res.status(401).json({error:'کد واردشده درست نیست.'});
+ }
+ db.prepare('DELETE FROM admin_login_codes WHERE id=?').run(row.id);
+ const admin=db.prepare("SELECT id,full_name,grade,class_name FROM users WHERE role='admin' ORDER BY id LIMIT 1").get();
+ if(!admin)return res.status(403).json({error:'حساب مدیر در سامانه تعریف نشده است.'});
+ const name=row.admin_name;
+ const token=jwt.sign({id:admin.id,name,role:'admin',grade:admin.grade,className:admin.class_name},SECRET,{expiresIn:'8h'});
+ res.cookie('school_token',token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:8*60*60*1000});
+ res.json({user:{id:admin.id,name,role:'admin',grade:admin.grade,className:admin.class_name}});
+});
 app.post('/api/login',(req,res)=>{
- const {username,password}=req.body||{};
- const user=db.prepare('SELECT * FROM users WHERE username=?').get(username||'');
+ const {username,password,role}=req.body||{};
+ if(!['student','deputy'].includes(role))return res.status(403).json({error:'برای این نقش از روش ورود مخصوص خودش استفاده کنید.'});
+ const user=db.prepare('SELECT * FROM users WHERE username=? AND role=?').get(username||'',role);
  if(!user||!bcrypt.compareSync(password||'',user.password_hash)) return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
  if(!user.approved) return res.status(403).json({error:'حساب شما هنوز توسط مدرسه تأیید نشده است.'});
  const token=jwt.sign({id:user.id,name:user.full_name,role:user.role,grade:user.grade,className:user.class_name},SECRET,{expiresIn:'8h'});
