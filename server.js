@@ -132,7 +132,7 @@ app.post('/api/auth/login',async(req,res)=>{
   const {data:rows,error:pe}=await sb.rpc('school_current_user_status');
   const p=Array.isArray(rows)?rows[0]:rows;
   if(pe||!p)throw new Error('پروفایل حساب پیدا نشد.');
-  if(p.role!=='student')throw new Error('این مسیر فقط برای حساب دانش‌آموز است.');
+  if(p.role==='admin')throw new Error('مدیر باید فقط با کد یک‌بارمصرف ایمیل وارد شود.');
   if(!p.approved)return res.status(403).json({error:'حساب شما هنوز توسط مدیر تأیید نشده است.'});
   setSchoolSession(res,data.session);
   res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
