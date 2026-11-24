@@ -445,3 +445,117 @@ footer{color:#887d73}
 .nav-item:hover{transform:translateX(-3px)}
 @media(max-width:760px){.portal-profile .profile-top{align-items:flex-start}.portal-profile .profile-top img{width:84px;height:84px;border-radius:22px}.portal-messages{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){#pageContent .data-card{animation:none}}
+
+
+/* Qazizadeh 2026 redesign: blue / green / silver, light + dark */
+:root{
+ --navy:#123b62;--navy2:#1767C8;--teal:#087A66;--gold:#B9C6D3;
+ --ink:#152b40;--muted:#64798b;--bg:#F3F7FA;--card:rgba(255,255,255,.88);
+ --line:#dce6ee;--shadow:0 18px 48px rgba(20,65,95,.10);
+ --q-blue:#1767C8;--q-green:#087A66;--q-silver:#B9C6D3;
+}
+body{
+ color:var(--ink);
+ background:
+  radial-gradient(ellipse at 8% 4%,rgba(23,103,200,.13),transparent 32%),
+  radial-gradient(ellipse at 94% 82%,rgba(8,122,102,.12),transparent 30%),
+  linear-gradient(140deg,#F7FAFC,#EAF1F6 55%,#F5F8FA);
+ font-family:'Vazirmatn','Tahoma',sans-serif;
+}
+body:before{opacity:.12;background-image:radial-gradient(1px 1px at 12% 20%,#1767C8 98%,transparent),radial-gradient(2px 2px at 72% 32%,#087A66 98%,transparent),radial-gradient(1px 1px at 48% 82%,#8ba9bf 98%,transparent);background-size:280px 240px}
+.topbar{background:rgba(248,251,253,.82);border-color:#dce6ee;box-shadow:0 8px 28px rgba(20,65,95,.06)}
+.brand-mark{background:linear-gradient(145deg,#1767C8,#087A66);color:#fff;box-shadow:0 10px 24px #1767C833}
+.btn-primary,.login-submit{background:linear-gradient(115deg,#1767C8,#087A66);color:#fff;box-shadow:0 8px 22px #1767C82b}
+.btn-primary:hover,.login-submit:hover{box-shadow:0 12px 28px #087A6638}
+.btn-soft,.btn-ghost{background:linear-gradient(145deg,#fff,#edf3f7);color:#17547b;border:1px solid #dce6ee;box-shadow:0 4px 12px #123b620d}
+.eyebrow,.welcome-kicker,.login-overline,.register-link,.text-btn{color:#087A66}
+.home-hero{
+ background:linear-gradient(122deg,#0b2844 0%,#124f78 52%,#087A66 118%);
+ color:#fff;border:1px solid #ffffff50;border-radius:32px;
+ box-shadow:0 16px 0 rgba(23,103,200,.06),0 30px 65px rgba(12,54,83,.18);
+}
+.home-hero:before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;right:-130px;top:-220px;background:linear-gradient(145deg,#ffffff25,#1767C800);box-shadow:inset 0 0 45px #b9c6d322}
+.home-hero:after{background:linear-gradient(145deg,#b9c6d344,#1767C822);box-shadow:12px 18px 30px #061b2b22}
+.hero-title,.home-hero h1{color:#fff}
+.title-accent{color:#b9e9df!important;text-shadow:0 0 24px #8ee6d433}
+.hero-copy>p,.home-hero p{color:#d7e7f0}
+.welcome-kicker{color:#9fe5d4}
+.hero-art .art-glow{background:radial-gradient(circle,#3bc7b255,transparent 70%)}
+.art-book{background:linear-gradient(145deg,#e7f0f6,#9eb6c9);color:#123b62;box-shadow:18px 24px 45px #06162b66,inset 8px 0 0 #fff8}
+.art-orbit{border-color:#b9c6d366}
+.orbit-b{border-color:#73d5bf88}
+.floating-card{background:rgba(247,251,253,.94);color:#1767C8;box-shadow:0 14px 32px #06162b35}
+.card-bottom{color:#087A66}
+.home-highlights>div,.feature-card,.home-bottom,.panel,.stat-card,.data-card,.chart-card,.sidebar{
+ background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(239,245,249,.92));
+ border:1px solid rgba(255,255,255,.94);
+ box-shadow:0 8px 0 rgba(23,103,200,.035),0 20px 46px rgba(17,58,88,.08);
+}
+.home-highlights b,.feature-card b,.home-section-head h2,.home-bottom h2,.page-head h1,.stat-card b,.section-title,.list-item b{color:#173b58}
+.feature-card>span,.stat-icon,.chart-symbol,.head-mark,.login-star{
+ background:linear-gradient(145deg,#e9f2f8,#d5e5ee);color:#1767C8;
+ box-shadow:inset 2px 2px 7px #fff,5px 7px 14px #17496b14;
+}
+.feature-card:nth-child(2)>span,.feature-card:nth-child(4)>span{color:#087A66;background:linear-gradient(145deg,#e4f5ef,#cfe9df)}
+.home-bottom{background:linear-gradient(115deg,#e5f1f8,#eff8f5 58%,#e7edf2);border-color:#dce9ef}
+.login-redesign{background:linear-gradient(145deg,#fff,#edf4f7);border:1px solid #fff;box-shadow:0 12px 0 #1767C811,0 35px 80px #123b621b}
+.login-showcase{background:radial-gradient(circle at 18% 78%,rgba(185,198,211,.22),transparent 28%),linear-gradient(145deg,#103b61 0%,#1767C8 58%,#087A66 120%)}
+.showcase-seal{color:#1767C8}
+.showcase-main h1 em{color:#b9e9df}
+.login-side{background:linear-gradient(145deg,#fff,#f1f6f8)}
+.login-side-head h2{color:#173b58}
+.login-role-wrap label,.login-form-redesign label{color:#426177}
+.login-role-wrap select,.login-form-redesign input,input,select,textarea{background:#f8fbfd;border-color:#dbe6ed;color:#18364e}
+.login-form-redesign input:focus,.login-role-wrap select:focus,input:focus,select:focus,textarea:focus{border-color:#1767C8;box-shadow:0 0 0 4px #1767C817}
+.login-security{background:#edf6f3;color:#55756d}
+.sidebar{background:linear-gradient(145deg,#fff,#edf4f8)}
+.nav-item{color:#567086}
+.nav-item.active,.nav-item:hover{background:linear-gradient(100deg,#e5f0fa,#e5f5ef);color:#1767C8;box-shadow:inset 3px 0 #087A66}
+.welcome-strip{background:linear-gradient(110deg,#123b62,#1767C8 58%,#087A66);border:1px solid #ffffff50}
+.tag{background:#e3f3ed;color:#087A66}
+.chart-track{fill:#e2ebf1}
+.chart-label{fill:#46657c}.chart-value{fill:#173b58}
+footer{color:#72899a}footer span{color:#087A66}
+body.dark{
+ --bg:#091725;--ink:#e7f1f8;--muted:#a5b9c8;--card:rgba(15,34,51,.92);
+ --line:#29475b;--navy:#e7f1f8;--navy2:#8fc4f0;--shadow:0 20px 55px rgba(0,0,0,.25);
+ background:radial-gradient(ellipse at 8% 4%,rgba(23,103,200,.22),transparent 34%),radial-gradient(ellipse at 94% 82%,rgba(8,122,102,.18),transparent 30%),linear-gradient(145deg,#071522,#0b2030 58%,#102a36);
+ color:#e7f1f8;
+}
+body.dark:before{opacity:.2}
+body.dark .topbar{background:rgba(7,20,32,.84);border-color:#29475b}
+body.dark .brand,body.dark .brand b,body.dark .page-head h1,body.dark .section-title,body.dark .stat-card b,body.dark .home-highlights b,body.dark .feature-card b{color:#eaf4fa}
+body.dark .brand small,body.dark .page-head p,body.dark .side-title,body.dark .sidebar-foot,body.dark .stat-card small,body.dark .list-item p,body.dark .list-item small{color:#a5b9c8}
+body.dark .panel,body.dark .stat-card,body.dark .data-card,body.dark .chart-card,body.dark .sidebar,body.dark .home-highlights>div,body.dark .feature-card,body.dark .home-bottom{background:linear-gradient(145deg,rgba(18,42,61,.96),rgba(10,29,44,.96));border-color:#29475b;color:#e7f1f8}
+body.dark .login-redesign{background:#102638;border-color:#29475b}
+body.dark .login-side{background:#102638}
+body.dark .login-side-head h2{color:#e7f1f8}
+body.dark .login-side-head p,body.dark .login-side-bottom{color:#a5b9c8}
+body.dark .login-role-wrap label,body.dark .login-form-redesign label{color:#c3d6e1}
+body.dark .login-role-wrap select,body.dark .login-form-redesign input,body.dark input,body.dark select,body.dark textarea{background:#0b2030;border-color:#35566b;color:#e7f1f8}
+body.dark .login-security{background:#173548;color:#bdd4df}
+body.dark .user-chip,body.dark .chat-window{background:#173548;color:#dceaf1}
+body.dark .nav-item{color:#b4c8d5}
+body.dark .nav-item.active,body.dark .nav-item:hover{background:linear-gradient(100deg,#173e58,#16463f);color:#9bd5ff}
+body.dark .home-bottom{background:linear-gradient(110deg,#12354d,#124239);border-color:#29475b}
+body.dark .chart-track{fill:#25445a}
+body.dark .chart-label,body.dark .chart-value{fill:#d8e8f1}
+body.dark .tag{background:#17483e;color:#9be1c9}
+body.dark .icon-btn{background:#173548;color:#e7f1f8;border-color:#35566b}
+@media(max-width:850px){
+ .home-hero{grid-template-columns:1fr}
+ .home-highlights{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+ .home-hero{border-radius:22px}
+ .hero-title{font-size:clamp(36px,10vw,46px)}
+ .home-highlights>div{padding:12px 9px}
+ .home-highlights b{font-size:11px}
+ .home-highlights span{font-size:9px}
+ .feature-grid{gap:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .public-home,.hero-copy,.hero-art,.title-accent,.floating-card,.pulse-dot{animation:none!important}
+ .panel:hover,.feature-card:hover,.home-highlights>div:hover,.stat-card:hover,.data-card:hover,.chart-card:hover{transform:none}
+}
