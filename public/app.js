@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let currentUser=null, dashboard=null, toastTimer;
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800)}
 async function api(url,options={}){const r=await fetch('/api'+url,{headers:{'Content-Type':'application/json',...(options.headers||{})},credentials:'same-origin',...options});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'خطایی رخ داد');return data}
-const ownerMode=location.pathname.replace(/\\/+$/,'')==='/owner';
+const ownerMode=location.pathname.replace(/\/+$/,'')==='/owner';
 function show(view){
  if(ownerMode && view!=='loginView' && view!=='appView') view='loginView';
  ['publicHome','loginView','registerView','appView'].forEach(id=>$('#'+id).classList.toggle('hidden',id!==view));
