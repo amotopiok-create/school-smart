@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://school-smart-preview.vercel.app/sitemap.xml
