@@ -124,30 +124,40 @@ app.post('/api/auth/login',async(req,res)=>{
   res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
  }catch(e){res.status(401).json({error:e.message||'ورود انجام نشد.'});}
 });
-app.post('/api/admin/request-code',async(req,res)=>{
- const email=String(req.body?.email||'').trim().toLowerCase();
- if(email!==adminEmail)return res.status(403).json({error:'فقط ایمیل مجاز مدیر پذیرفته می‌شود.'});
- if(!supabase)return res.status(503).json({error:'سرویس احراز هویت تنظیم نشده است.'});
+const adminLoginAttempts = new Map();
+app.post('/api/admin/login',async(req,res)=>{
+ const username=String(req.body?.username||'').trim().toLowerCase();
+ const password=String(req.body?.password||'');
+ const ip=String(req.ip||'unknown');
+ const now=Date.now();
+ const attempt=adminLoginAttempts.get(ip);
+ if(attempt && now-attempt.startedAt<15*60*1000 && attempt.count>=8){
+  return res.status(429).json({error:'تعداد تلاش‌ها زیاد است. ۱۵ دقیقه دیگر دوباره امتحان کنید.'});
+ }
+ if(!username||!password) return res.status(400).json({error:'نام کاربری و رمز عبور لازم است.'});
+ if(username!==adminEmail || !supabase){
+  if(!attempt || now-attempt.startedAt>=15*60*1000) adminLoginAttempts.set(ip,{startedAt:now,count:1});
+  else adminLoginAttempts.set(ip,{...attempt,count:attempt.count+1});
+  return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
+ }
  try{
-  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
-  if(error)throw error;
-  res.json({ok:true,message:'کد یک‌بارمصرف به ایمیل مدیر ارسال شد.'});
- }catch(e){res.status(502).json({error:e.message||'ارسال کد انجام نشد.'});}
-});
-app.post('/api/admin/verify-code',async(req,res)=>{
- const email=String(req.body?.email||'').trim().toLowerCase(),code=String(req.body?.code||'').trim();
- if(email!==adminEmail)return res.status(403).json({error:'ایمیل مدیر مجاز نیست.'});
- if(!/^\d{6}$/.test(code))return res.status(400).json({error:'کد باید ۶ رقم باشد.'});
- try{
-  const {data,error}=await supabase.auth.verifyOtp({email,token:code,type:'email'});
-  if(error)throw error;
+  const {data,error}=await supabase.auth.signInWithPassword({email:adminEmail,password});
+  if(error||!data?.session||!data?.user) throw new Error('ورود ناموفق بود.');
   const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+data.session.access_token}},auth:{persistSession:false,autoRefreshToken:false}});
   const {data:rows,error:pe}=await sb.rpc('school_current_user_status');
   const p=Array.isArray(rows)?rows[0]:rows;
-  if(pe||!p||p.role!=='admin'||data.user.email?.toLowerCase()!==adminEmail) return res.status(403).json({error:'این حساب، حساب مدیر مجاز مدرسه نیست.'});
+  if(pe||!p||p.role!=='admin'||data.user.email?.toLowerCase()!==adminEmail){
+   await sb.auth.signOut().catch(()=>{});
+   return res.status(403).json({error:'این حساب، دسترسی مدیر مدرسه را ندارد.'});
+  }
+  adminLoginAttempts.delete(ip);
   setSchoolSession(res,data.session);
-  res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
- }catch(e){res.status(401).json({error:e.message||'کد ورود معتبر نیست.'});}
+  return res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
+ }catch(e){
+  if(!attempt || now-attempt.startedAt>=15*60*1000) adminLoginAttempts.set(ip,{startedAt:now,count:1});
+  else adminLoginAttempts.set(ip,{...attempt,count:attempt.count+1});
+  return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
+ }
 });
 
 
