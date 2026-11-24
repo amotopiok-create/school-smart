@@ -39,15 +39,10 @@
         <label>رمز عبور<input name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"></label>
       </div>
       <div id="adminLoginFields" class="hidden">
-        <label>ایمیل مدیر<input id="adminEmail" type="email" autocomplete="email" required value="" placeholder="ایمیل مدیر را وارد کنید"></label>
-        <button type="button" id="sendAdminCode" class="btn btn-primary full">ارسال کد ورود به ایمیل <span>←</span></button>
+        <label>نام کاربری مدیر<input id="adminUsername" name="username" type="email" autocomplete="username" required placeholder="ایمیل حساب مدیر"></label>
+        <label>رمز عبور مدیر<input id="adminPassword" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور حساب مدیر"></label>
       </div>
       <button id="loginSubmit" class="btn btn-primary full login-submit">ورود به پنل <span>←</span></button>
-    </form>
-    <form id="adminCodeForm" class="hidden login-form-redesign">
-      <label>کد ارسال‌شده به ایمیل<input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="کد ۶ رقمی"></label>
-      <button class="btn btn-primary full login-submit">تأیید کد و ورود مدیر</button>
-      <button type="button" id="backToAdmin" class="text-btn">بازگشت</button>
     </form>
     <div class="login-side-bottom"><span>حساب دانش‌آموزی نداری؟</span><button id="showRegister" class="register-link">درخواست ثبت‌نام <b>←</b></button></div>
     <div class="login-security"><span>♧</span> ورود امن و اختصاصی اعضای مدرسه</div>
@@ -74,4 +69,4 @@
 <div class="content"><div class="page-head"><div><span class="eyebrow" id="dateLabel">داشبورد آموزشی</span><h1 id="pageTitle">سلام، خوش آمدید 👋</h1><p id="pageSubtitle">نمای کلی فعالیت‌های مدرسه</p></div><div class="head-mark">✦</div></div><div id="pageContent"></div></div>
 </section><div id="toast" role="status" aria-live="polite" class="toast"></div>
 </main><footer>مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده <span>✦</span> سامانه آموزشی</footer>
-<script src="/app.js?v=student-portal-20261124-2"></script></body></html>
+<script src="/app.js?v=admin-password-20261124-1"></script></body></html>
