@@ -137,12 +137,12 @@ app.post('/api/auth/session',async(req,res)=>{
  }catch(e){return res.status(401).json({error:'اعتبارسنجی لینک ورود انجام نشد.'});}
 });
 app.post('/api/auth/register',async(req,res)=>{
- const fullName=String(req.body?.fullName||'').trim().slice(0,100),email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),grade=Number(req.body?.grade)||null;
+ const fullName=String(req.body?.fullName||'').trim().slice(0,100),email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),grade=Number(req.body?.grade)||null,className=String(req.body?.className||'').trim().slice(0,80);
  if(!fullName||!/^\S+@\S+\.\S+$/.test(email)||password.length<8||!grade||grade<1||grade>6)return res.status(400).json({error:'نام، ایمیل معتبر، رمز حداقل ۸ کاراکتری و پایه را وارد کنید.'});
  if(email===adminEmail)return res.status(403).json({error:'این ایمیل فقط برای ورود مدیر رزرو شده است.'});
  if(!supabase)return res.status(503).json({error:'سرویس حساب کاربری تنظیم نشده است.'});
  try{
-  const {data,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName,grade}}});
+  const {data,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName,grade,class_name:className||null}}});
   if(error)throw error;
   res.status(201).json({ok:true,needsEmailConfirmation:!data.session,message:'درخواست ثبت‌نام ثبت شد. ایمیل خود را برای تأیید بررسی کنید؛ سپس مدیر حساب را تأیید می‌کند.'});
  }catch(e){res.status(400).json({error:e.message||'ثبت‌نام انجام نشد.'});}
