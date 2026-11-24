@@ -282,6 +282,7 @@ app.get('/api/portal/profile',auth,async(req,res)=>{
  if(!req.sb)return res.json({profile:{id:req.user.id,full_name:req.user.name,role:req.user.role,grade:req.user.grade,avatar_url:null,phone:null}});
  const {data,error}=await req.sb.from('profiles').select('id,full_name,role,phone,grade,avatar_url').eq('id',req.user.id).single();
  if(error)return res.status(400).json({error:error.message});
+ if(data.avatar_url){const signed=await req.sb.storage.from('school-avatars').createSignedUrl(data.avatar_url,3600);data.avatar_url=signed.data?.signedUrl||null;}
  res.json({profile:data});
 });
 app.patch('/api/portal/profile',auth,async(req,res)=>{
@@ -301,10 +302,10 @@ app.post('/api/portal/avatar',auth,async(req,res)=>{
  const ext=match[1].split('/')[1].replace('jpeg','jpg'),path=req.user.id+'/avatar.'+ext;
  const {error:uploadError}=await req.sb.storage.from('school-avatars').upload(path,buffer,{contentType:match[1],upsert:true});
  if(uploadError)return res.status(400).json({error:uploadError.message});
- const {data}=req.sb.storage.from('school-avatars').getPublicUrl(path);
- const {error:updateError}=await req.sb.from('profiles').update({avatar_url:data.publicUrl}).eq('id',req.user.id);
+ const {error:updateError}=await req.sb.from('profiles').update({avatar_url:path}).eq('id',req.user.id);
  if(updateError)return res.status(400).json({error:updateError.message});
- res.json({avatarUrl:data.publicUrl});
+ const signed=await req.sb.storage.from('school-avatars').createSignedUrl(path,3600);
+ res.json({avatarUrl:signed.data?.signedUrl||null});
 });
 app.get('/api/portal/messages',auth,async(req,res)=>{
  if(!req.sb)return res.json({messages:[]});
