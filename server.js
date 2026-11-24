@@ -244,8 +244,9 @@ app.post('/api/users/:id/approve',auth,roles('admin','deputy'),(req,res)=>{
  res.json({ok:true});
 });
 app.delete('/api/users/:id',auth,roles('admin'),(req,res)=>{if(Number(req.params.id)===req.user.id)return res.status(400).json({error:'حذف حساب واردشده ممکن نیست.'});db.prepare('DELETE FROM users WHERE id=?').run(req.params.id);res.json({ok:true});});
-app.post('/api/announcements',auth,roles('admin','deputy','teacher'),(req,res)=>{
+app.post('/api/announcements',auth,roles('admin','deputy','teacher'),async(req,res)=>{
  const {title,body}=req.body||{};if(!title||!body)return res.status(400).json({error:'عنوان و متن لازم است.'});
+ if(req.sb){const {error}=await req.sb.from('notices').insert({title:String(title).slice(0,120),body:String(body).slice(0,3000),author_id:req.user.id,published:true});if(error)return res.status(400).json({error:error.message});return res.json({ok:true});}
  db.prepare('INSERT INTO announcements(title,body,author_id) VALUES(?,?,?)').run(title,body,req.user.id);res.json({ok:true});
 });
 app.post('/api/assignments',auth,roles('admin','deputy','teacher'),(req,res)=>{
