@@ -111,7 +111,7 @@ function setSchoolSession(res,session){
 }
 app.post('/api/auth/register',async(req,res)=>{
  const fullName=String(req.body?.fullName||'').trim().slice(0,100),email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),grade=Number(req.body?.grade)||null;
- if(!fullName||!/^\\S+@\\S+\\.\\S+$/.test(email)||password.length<8||!grade||grade<1||grade>6)return res.status(400).json({error:'نام، ایمیل معتبر، رمز حداقل ۸ کاراکتری و پایه را وارد کنید.'});
+ if(!fullName||!/^\S+@\S+\.\S+$/.test(email)||password.length<8||!grade||grade<1||grade>6)return res.status(400).json({error:'نام، ایمیل معتبر، رمز حداقل ۸ کاراکتری و پایه را وارد کنید.'});
  if(email===adminEmail)return res.status(403).json({error:'این ایمیل فقط برای ورود مدیر رزرو شده است.'});
  if(!supabase)return res.status(503).json({error:'سرویس حساب کاربری تنظیم نشده است.'});
  try{
@@ -151,7 +151,7 @@ app.post('/api/admin/request-code',async(req,res)=>{
 app.post('/api/admin/verify-code',async(req,res)=>{
  const email=String(req.body?.email||'').trim().toLowerCase(),code=String(req.body?.code||'').trim();
  if(email!==adminEmail)return res.status(403).json({error:'ایمیل مدیر مجاز نیست.'});
- if(!/^\\d{6}$/.test(code))return res.status(400).json({error:'کد باید ۶ رقم باشد.'});
+ if(!/^\d{6}$/.test(code))return res.status(400).json({error:'کد باید ۶ رقم باشد.'});
  try{
   const {data,error}=await supabase.auth.verifyOtp({email,token:code,type:'email'});
   if(error)throw error;
@@ -247,7 +247,7 @@ app.post('/api/grades',auth,roles('admin','deputy','teacher'),(req,res)=>{
  db.prepare('INSERT INTO grades(student_id,subject,score,note,teacher_id) VALUES(?,?,?,?,?)').run(Number(studentId),subject,Number(score),note||'',req.user.id);res.json({ok:true});
 });
 app.get('/api/attendance',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const day=/^\\d{4}-\\d{2}-\\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
+ const day=/^\d{4}-\\d{2}-\\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
  const students=db.prepare("SELECT id,full_name,grade,class_name FROM users WHERE role='student' AND approved=1 ORDER BY grade,class_name,full_name").all();
  const rows=db.prepare("SELECT a.student_id,a.status,u.full_name,u.class_name FROM attendance a JOIN users u ON u.id=a.student_id WHERE a.day=? ORDER BY u.grade,u.class_name,u.full_name").all(day);
  res.json({day,students,rows});
@@ -294,7 +294,7 @@ app.patch('/api/portal/profile',auth,async(req,res)=>{
 });
 app.post('/api/portal/avatar',auth,async(req,res)=>{
  if(!req.sb)return res.status(400).json({error:'این قابلیت برای حساب‌های قدیمی فعال نیست.'});
- const raw=String(req.body?.data||''),match=raw.match(/^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+ const raw=String(req.body?.data||''),match=raw.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
  if(!match)return res.status(400).json({error:'فقط تصویر JPG، PNG یا WEBP پذیرفته می‌شود.'});
  const buffer=Buffer.from(match[2],'base64');
  if(buffer.length>2*1024*1024)return res.status(413).json({error:'حجم عکس باید کمتر از ۲ مگابایت باشد.'});
