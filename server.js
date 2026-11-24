@@ -329,7 +329,7 @@ app.get('/api/portal/contacts',auth,async(req,res)=>{
 });
 app.get('/api/portal/notifications',auth,async(req,res)=>{
  if(!req.sb)return res.json({notifications:[]});
- const {data,error}=await req.sb.from('notifications').select('id,title,body,category,target_url,read_at,created_at').or('recipient_id.eq.'+req.user.id+',recipient_id.is.null').order('created_at',{ascending:false}).limit(100);
+ const {data,error}=await req.sb.from('notifications').select('id,recipient_id,title,body,category,target_url,read_at,created_at').or('recipient_id.eq.'+req.user.id+',recipient_id.is.null').order('created_at',{ascending:false}).limit(100);
  if(error)return res.status(400).json({error:error.message});
  res.json({notifications:data||[]});
 });
