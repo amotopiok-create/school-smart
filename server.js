@@ -76,10 +76,23 @@ if (!count) {
  db.prepare('INSERT INTO assignments(title,description,grade,due_date) VALUES(?,?,?,?)')
    .run('تمرین ریاضی','تمرین‌های صفحه امروز کتاب را حل کنید.',4,'2026-11-25');
 }
-function auth(req,res,next) {
+async function auth(req,res,next) {
  const token = req.cookies.school_token || (req.headers.authorization||'').replace('Bearer ','');
- try { req.user = jwt.verify(token, SECRET); next(); }
- catch { res.status(401).json({error:'برای ادامه وارد حساب شوید.'}); }
+ if (!token) return res.status(401).json({error:'برای ادامه وارد حساب شوید.'});
+ try { req.user = jwt.verify(token, SECRET); return next(); } catch {}
+ if (!supabase) return res.status(401).json({error:'نشست معتبر نیست.'});
+ try {
+  const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:authData,error:authError}=await sb.auth.getUser(token);
+  if(authError||!authData?.user) return res.status(401).json({error:'نشست منقضی شده است. دوباره وارد شوید.'});
+  const {data:rows,error:profileError}=await sb.rpc('school_current_user_status');
+  const profile=Array.isArray(rows)?rows[0]:rows;
+  if(profileError||!profile) return res.status(403).json({error:'پروفایل کاربری پیدا نشد.'});
+  if(!profile.approved) return res.status(403).json({error:'درخواست ثبت‌نام شما هنوز توسط مدیر تأیید نشده است.'});
+  req.sb=sb;req.authUser=authData.user;
+  req.user={id:profile.profile_id,name:profile.full_name,role:profile.role,grade:profile.grade,phone:profile.phone,avatarUrl:profile.avatar_url,authProvider:'supabase'};
+  return next();
+ } catch(e){return res.status(401).json({error:'اعتبارسنجی حساب انجام نشد.'});}
 }
 function roles(...allowed){ return (req,res,next)=> allowed.includes(req.user.role) ? next() : res.status(403).json({error:'دسترسی مجاز نیست.'}); }
 app.post('/api/register',(req,res)=>{
@@ -93,6 +106,64 @@ app.post('/api/register',(req,res)=>{
  } catch(e){ res.status(409).json({error:'این نام کاربری قبلاً ثبت شده است.'}); }
 });
 const adminEmail = 'amotopiok@gmail.com';
+function setSchoolSession(res,session){
+ res.cookie('school_token',session.access_token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:Math.min(Number(session.expires_in||3600),3600)*1000});
+}
+app.post('/api/auth/register',async(req,res)=>{
+ const fullName=String(req.body?.fullName||'').trim().slice(0,100),email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),grade=Number(req.body?.grade)||null;
+ if(!fullName||!/^\\S+@\\S+\\.\\S+$/.test(email)||password.length<8||!grade||grade<1||grade>6)return res.status(400).json({error:'نام، ایمیل معتبر، رمز حداقل ۸ کاراکتری و پایه را وارد کنید.'});
+ if(email===adminEmail)return res.status(403).json({error:'این ایمیل فقط برای ورود مدیر رزرو شده است.'});
+ if(!supabase)return res.status(503).json({error:'سرویس حساب کاربری تنظیم نشده است.'});
+ try{
+  const {data,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName,grade}}});
+  if(error)throw error;
+  res.status(201).json({ok:true,needsEmailConfirmation:!data.session,message:'درخواست ثبت‌نام ثبت شد. ایمیل خود را برای تأیید بررسی کنید؛ سپس مدیر حساب را تأیید می‌کند.'});
+ }catch(e){res.status(400).json({error:e.message||'ثبت‌نام انجام نشد.'});}
+});
+app.post('/api/auth/login',async(req,res)=>{
+ const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||'');
+ if(!email||!password)return res.status(400).json({error:'ایمیل و رمز عبور لازم است.'});
+ if(email===adminEmail)return res.status(403).json({error:'مدیر باید فقط با کد یک‌بارمصرف ایمیل وارد شود.'});
+ if(!supabase)return res.status(503).json({error:'سرویس حساب کاربری تنظیم نشده است.'});
+ try{
+  const {data,error}=await supabase.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+data.session.access_token}},auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:rows,error:pe}=await sb.rpc('school_current_user_status');
+  const p=Array.isArray(rows)?rows[0]:rows;
+  if(pe||!p)throw new Error('پروفایل حساب پیدا نشد.');
+  if(p.role!=='student')throw new Error('این مسیر فقط برای حساب دانش‌آموز است.');
+  if(!p.approved)return res.status(403).json({error:'حساب شما هنوز توسط مدیر تأیید نشده است.'});
+  setSchoolSession(res,data.session);
+  res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
+ }catch(e){res.status(401).json({error:e.message||'ورود انجام نشد.'});}
+});
+app.post('/api/admin/request-code',async(req,res)=>{
+ const email=String(req.body?.email||'').trim().toLowerCase();
+ if(email!==adminEmail)return res.status(403).json({error:'فقط ایمیل مجاز مدیر پذیرفته می‌شود.'});
+ if(!supabase)return res.status(503).json({error:'سرویس احراز هویت تنظیم نشده است.'});
+ try{
+  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  if(error)throw error;
+  res.json({ok:true,message:'کد یک‌بارمصرف به ایمیل مدیر ارسال شد.'});
+ }catch(e){res.status(502).json({error:e.message||'ارسال کد انجام نشد.'});}
+});
+app.post('/api/admin/verify-code',async(req,res)=>{
+ const email=String(req.body?.email||'').trim().toLowerCase(),code=String(req.body?.code||'').trim();
+ if(email!==adminEmail)return res.status(403).json({error:'ایمیل مدیر مجاز نیست.'});
+ if(!/^\\d{6}$/.test(code))return res.status(400).json({error:'کد باید ۶ رقم باشد.'});
+ try{
+  const {data,error}=await supabase.auth.verifyOtp({email,token:code,type:'email'});
+  if(error)throw error;
+  const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+data.session.access_token}},auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:rows,error:pe}=await sb.rpc('school_current_user_status');
+  const p=Array.isArray(rows)?rows[0]:rows;
+  if(pe||!p||p.role!=='admin'||data.user.email?.toLowerCase()!==adminEmail) return res.status(403).json({error:'این حساب، حساب مدیر مجاز مدرسه نیست.'});
+  setSchoolSession(res,data.session);
+  res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
+ }catch(e){res.status(401).json({error:e.message||'کد ورود معتبر نیست.'});}
+});
+
 const adminCodeRequests = new Map();
 function hashAdminCode(code){return crypto.createHmac('sha256',SECRET).update(code).digest('hex');}
 app.post('/api/admin/request-code',async(req,res)=>{
@@ -205,5 +276,116 @@ app.get('/api/platform/health', async (req,res) => {
     res.status(503).json({ ok:false, database:'unavailable' });
   }
 });
+
+// Persistent student portal features backed by Supabase Auth + RLS-protected Postgres.
+app.get('/api/portal/profile',auth,async(req,res)=>{
+ if(!req.sb)return res.json({profile:{id:req.user.id,full_name:req.user.name,role:req.user.role,grade:req.user.grade,avatar_url:null,phone:null}});
+ const {data,error}=await req.sb.from('profiles').select('id,full_name,role,phone,grade,avatar_url').eq('id',req.user.id).single();
+ if(error)return res.status(400).json({error:error.message});
+ res.json({profile:data});
+});
+app.patch('/api/portal/profile',auth,async(req,res)=>{
+ if(!req.sb)return res.status(400).json({error:'این قابلیت برای حساب‌های قدیمی فعال نیست.'});
+ const full_name=String(req.body?.fullName||'').trim().slice(0,100),phone=String(req.body?.phone||'').trim().slice(0,30);
+ if(!full_name)return res.status(400).json({error:'نام نمایشی لازم است.'});
+ const {data,error}=await req.sb.from('profiles').update({full_name,phone:phone||null,updated_at:new Date().toISOString()}).eq('id',req.user.id).select('id,full_name,role,phone,grade,avatar_url').single();
+ if(error)return res.status(400).json({error:error.message});
+ res.json({profile:data});
+});
+app.post('/api/portal/avatar',auth,async(req,res)=>{
+ if(!req.sb)return res.status(400).json({error:'این قابلیت برای حساب‌های قدیمی فعال نیست.'});
+ const raw=String(req.body?.data||''),match=raw.match(/^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+ if(!match)return res.status(400).json({error:'فقط تصویر JPG، PNG یا WEBP پذیرفته می‌شود.'});
+ const buffer=Buffer.from(match[2],'base64');
+ if(buffer.length>2*1024*1024)return res.status(413).json({error:'حجم عکس باید کمتر از ۲ مگابایت باشد.'});
+ const ext=match[1].split('/')[1].replace('jpeg','jpg'),path=req.user.id+'/avatar.'+ext;
+ const {error:uploadError}=await req.sb.storage.from('school-avatars').upload(path,buffer,{contentType:match[1],upsert:true});
+ if(uploadError)return res.status(400).json({error:uploadError.message});
+ const {data}=req.sb.storage.from('school-avatars').getPublicUrl(path);
+ const {error:updateError}=await req.sb.from('profiles').update({avatar_url:data.publicUrl}).eq('id',req.user.id);
+ if(updateError)return res.status(400).json({error:updateError.message});
+ res.json({avatarUrl:data.publicUrl});
+});
+app.get('/api/portal/messages',auth,async(req,res)=>{
+ if(!req.sb)return res.json({messages:[]});
+ const {data,error}=await req.sb.from('messages').select('id,sender_id,recipient_id,subject,body,read_at,created_at,sender:profiles!messages_sender_id_fkey(full_name,avatar_url),recipient:profiles!messages_recipient_id_fkey(full_name,avatar_url)').or('sender_id.eq.'+req.user.id+',recipient_id.eq.'+req.user.id).order('created_at',{ascending:false}).limit(100);
+ if(error)return res.status(400).json({error:error.message});
+ res.json({messages:data||[]});
+});
+app.post('/api/portal/messages',auth,async(req,res)=>{
+ if(!req.sb)return res.status(400).json({error:'پیام‌رسان برای این حساب فعال نیست.'});
+ const recipientId=String(req.body?.recipientId||''),body=String(req.body?.body||'').trim().slice(0,4000),subject=String(req.body?.subject||'').trim().slice(0,120);
+ if(!recipientId||!body)return res.status(400).json({error:'گیرنده و متن پیام لازم است.'});
+ const {data,error}=await req.sb.from('messages').insert({sender_id:req.user.id,recipient_id:recipientId,subject:subject||null,body}).select('id').single();
+ if(error)return res.status(400).json({error:error.message});
+ await req.sb.from('notifications').insert({recipient_id:recipientId,title:'پیام جدید',body:'یک پیام جدید در پیام‌رسان مدرسه دریافت کردید.',category:'message'});
+ res.json({ok:true,id:data.id});
+});
+app.get('/api/portal/contacts',auth,async(req,res)=>{
+ if(!req.sb)return res.json({contacts:[]});
+ const {data,error}=await req.sb.from('profiles').select('id,full_name,role,grade,avatar_url').neq('id',req.user.id).order('full_name').limit(200);
+ if(error)return res.status(400).json({error:error.message});
+ res.json({contacts:data||[]});
+});
+app.get('/api/portal/notifications',auth,async(req,res)=>{
+ if(!req.sb)return res.json({notifications:[]});
+ const {data,error}=await req.sb.from('notifications').select('id,title,body,category,target_url,read_at,created_at').or('recipient_id.eq.'+req.user.id+',recipient_id.is.null').order('created_at',{ascending:false}).limit(100);
+ if(error)return res.status(400).json({error:error.message});
+ res.json({notifications:data||[]});
+});
+app.post('/api/portal/notifications',auth,roles('admin'),async(req,res)=>{
+ if(!req.sb)return res.status(400).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const title=String(req.body?.title||'').trim().slice(0,120),body=String(req.body?.body||'').trim().slice(0,2000);
+ if(!title||!body)return res.status(400).json({error:'عنوان و متن خبر لازم است.'});
+ const {error}=await req.sb.from('notifications').insert({recipient_id:null,title,body,category:'announcement'});
+ if(error)return res.status(400).json({error:error.message});
+ res.json({ok:true});
+});
+app.post('/api/portal/notifications/:id/read',auth,async(req,res)=>{
+ if(!req.sb)return res.status(400).json({error:'پایگاه داده در دسترس نیست.'});
+ const {error}=await req.sb.from('notifications').update({read_at:new Date().toISOString()}).eq('id',req.params.id).eq('recipient_id',req.user.id);
+ if(error)return res.status(400).json({error:error.message});
+ res.json({ok:true});
+});
+app.get('/api/portal/council',auth,async(req,res)=>{
+ if(!req.sb)return res.json({members:[],students:[]});
+ const {data,error}=await req.sb.from('council_members').select('id,user_id,position,grade,class_name,active,profile:profiles!council_members_user_id_fkey(full_name,avatar_url)').eq('active',true).order('grade');
+ if(error)return res.status(400).json({error:error.message});
+ let students=[];
+ if(req.user.role==='admin'){
+  const result=await req.sb.from('profiles').select('id,full_name,grade').eq('role','student').order('full_name');
+  students=result.data||[];
+ }
+ res.json({members:data||[],students});
+});
+app.post('/api/portal/council',auth,roles('admin'),async(req,res)=>{
+ if(!req.sb)return res.status(400).json({error:'پایگاه داده در دسترس نیست.'});
+ const userId=String(req.body?.userId||''),position=String(req.body?.position||'عضو شورا').trim().slice(0,80);
+ if(!userId)return res.status(400).json({error:'دانش‌آموز را انتخاب کنید.'});
+ const {data:student,error:studentError}=await req.sb.from('profiles').select('id,grade,role').eq('id',userId).single();
+ if(studentError||!student||student.role!=='student')return res.status(400).json({error:'فقط دانش‌آموزان می‌توانند عضو شورا شوند.'});
+ await req.sb.from('council_members').delete().eq('user_id',userId);
+ const {error}=await req.sb.from('council_members').insert({user_id:userId,position,grade:student.grade,active:true});
+ if(error)return res.status(400).json({error:error.message});
+ res.json({ok:true});
+});
+app.delete('/api/portal/council/:id',auth,roles('admin'),async(req,res)=>{
+ const {error}=await req.sb.from('council_members').delete().eq('id',req.params.id);
+ if(error)return res.status(400).json({error:error.message});
+ res.json({ok:true});
+});
+app.get('/api/portal/registrations',auth,roles('admin'),async(req,res)=>{
+ const {data,error}=await req.sb.from('registration_requests').select('id,full_name,email,phone,requested_role,grade,note,status,created_at').order('created_at',{ascending:false});
+ if(error)return res.status(400).json({error:error.message});
+ res.json({requests:data||[]});
+});
+app.post('/api/portal/registrations/:id/:status',auth,roles('admin'),async(req,res)=>{
+ const status=req.params.status;
+ if(!['approved','rejected'].includes(status))return res.status(400).json({error:'وضعیت نامعتبر است.'});
+ const {error}=await req.sb.rpc('school_admin_set_registration',{p_request_id:req.params.id,p_status:status});
+ if(error)return res.status(400).json({error:error.message});
+ res.json({ok:true});
+});
+
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.listen(PORT,()=>console.log(`School Smart running at http://localhost:${PORT}`));
