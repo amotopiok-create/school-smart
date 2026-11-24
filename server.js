@@ -279,17 +279,18 @@ app.post('/api/assignments',auth,roles('admin','deputy','teacher'),async(req,res
  const {title,description,grade,dueDate}=req.body||{};
  if(!title)return res.status(400).json({error:'عنوان تکلیف لازم است.'});
  if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
- let classId=null;
+ let classIds=[null];
  if(Number(grade)){
-  const {data:classes,error:classError}=await req.sb.from('classes').select('id').eq('grade',Number(grade)).order('name').limit(1);
+  const {data:classes,error:classError}=await req.sb.from('classes').select('id').eq('grade',Number(grade)).order('name');
   if(classError)return res.status(400).json({error:'کلاس پایه انتخاب‌شده پیدا نشد.'});
   if(!classes?.length)return res.status(400).json({error:'ابتدا کلاس این پایه را در سامانه تعریف کنید.'});
-  classId=classes[0].id;
+  classIds=classes.map(c=>c.id);
  }
  const dueAt=dueDate?String(dueDate)+'T23:59:59.000Z':null;
- const {error}=await req.sb.from('assignments').insert({title:String(title).slice(0,160),description:String(description||'').slice(0,5000),class_id:classId,teacher_id:req.user.id,due_at:dueAt});
+ const rows=classIds.map(classId=>({title:String(title).slice(0,160),description:String(description||'').slice(0,5000),class_id:classId,teacher_id:req.user.id,due_at:dueAt}));
+ const {error}=await req.sb.from('assignments').insert(rows);
  if(error)return res.status(400).json({error:'ثبت تکلیف انجام نشد.'});
- res.json({ok:true});
+ res.json({ok:true,created:rows.length});
 });
 app.post('/api/grades',auth,roles('admin','deputy','teacher'),async(req,res)=>{
  const {studentId,subject,score,note}=req.body||{};
