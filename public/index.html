@@ -35,12 +35,12 @@
     <div class="login-role-wrap"><label for="loginRole">نوع حساب کاربری</label><select id="loginRole"><option value="student">دانش‌آموز</option><option value="teacher">معلم</option><option value="deputy">معاون</option><option value="admin">مدیر</option></select></div>
     <form id="loginForm" class="login-form-redesign">
       <div id="staffLoginFields">
-        <label>نام کاربری<input name="username" autocomplete="username" required placeholder="نام کاربری خود را وارد کنید"></label>
+        <label>ایمیل حساب<input name="email" type="email" autocomplete="username" required placeholder="ایمیل ثبت‌شده"></label>
         <label>رمز عبور<input name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"></label>
       </div>
       <div id="adminLoginFields" class="hidden">
-        <label>نام مدیر<input id="adminName" maxlength="60" required placeholder="نام مدیر را وارد کنید"></label>
-        <div class="fixed-email">ایمیل مجاز مدیر: <b>amotopiok@gmail.com</b></div>
+        <label>ایمیل مدیر<input id="adminEmail" type="email" autocomplete="email" required value="" placeholder="ایمیل مدیر را وارد کنید"></label>
+        <div class="fixed-email">فقط این ایمیل مجاز است: <b>amotopiok@gmail.com</b></div>
         <button type="button" id="sendAdminCode" class="btn btn-primary full">ارسال کد ورود به ایمیل <span>←</span></button>
       </div>
       <button id="loginSubmit" class="btn btn-primary full login-submit">ورود به پنل <span>←</span></button>
@@ -55,7 +55,7 @@
   </div>
 </section>
 <section id="registerView" class="panel register-card hidden"><button class="text-btn" id="backLogin">← بازگشت به ورود</button><h2>درخواست ساخت حساب دانش‌آموز</h2><p class="muted">درخواست شما پس از تأیید مدیر یا معاون قابل استفاده خواهد بود.</p>
-<form id="registerForm" class="form-grid"><label>نام و نام خانوادگی<input name="fullName" autocomplete="name" required></label><label>نام کاربری<input name="username" autocomplete="username" required></label><label>رمز عبور (حداقل ۸ کاراکتر)<input name="password" type="password" minlength="8" autocomplete="new-password" required></label><label>پایه تحصیلی<select name="grade"><option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option><option value="4">چهارم</option><option value="5">پنجم</option><option value="6" selected>ششم</option></select></label><label>نام کلاس<input name="className" placeholder="مثلاً ششم الف"></label><button class="btn btn-primary">ارسال درخواست</button></form></section>
+<form id="registerForm" class="form-grid"><label>نام و نام خانوادگی<input name="fullName" autocomplete="name" required></label><label>ایمیل دانش‌آموز<input name="email" type="email" autocomplete="email" required></label><label>رمز عبور (حداقل ۸ کاراکتر)<input name="password" type="password" minlength="8" autocomplete="new-password" required></label><label>پایه تحصیلی<select name="grade"><option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option><option value="4">چهارم</option><option value="5">پنجم</option><option value="6" selected>ششم</option></select></label><label>نام کلاس<input name="className" placeholder="مثلاً ششم الف"></label><button class="btn btn-primary">ارسال درخواست</button></form></section>
 <section id="appView" class="app-layout hidden">
 <aside class="sidebar panel"><div class="side-title">فضای کاربری</div><nav id="nav">
 <button class="nav-item active" data-page="home">⌂ <span>داشبورد</span></button>
@@ -65,9 +65,14 @@
 <button class="nav-item" data-page="people" data-roles="admin,deputy,teacher">♙ <span>کاربران</span></button>
 <button class="nav-item" data-page="reports" data-roles="admin,deputy,teacher">▥ <span>گزارش‌ها</span></button>
 <button class="nav-item" data-page="manage" data-roles="admin,deputy,teacher">＋ <span>مدیریت محتوا</span></button>
+<button class="nav-item" data-page="profile">◉ <span>پروفایل و تنظیمات</span></button>
+<button class="nav-item" data-page="messages">✉ <span>پیام‌رسان</span></button>
+<button class="nav-item" data-page="notifications">♢ <span>خبررسانی</span></button>
+<button class="nav-item" data-page="council">✦ <span>شورای دانش‌آموزی</span></button>
+<button class="nav-item" data-page="registrations" data-roles="admin">♙ <span>درخواست‌های ثبت‌نام</span></button>
 
 </nav><div class="sidebar-foot"><span class="status-dot"></span> سامانه فعال است</div></aside>
 <div class="content"><div class="page-head"><div><span class="eyebrow" id="dateLabel">داشبورد آموزشی</span><h1 id="pageTitle">سلام، خوش آمدید 👋</h1><p id="pageSubtitle">نمای کلی فعالیت‌های مدرسه</p></div><div class="head-mark">✦</div></div><div id="pageContent"></div></div>
 </section><div id="toast" role="status" aria-live="polite" class="toast"></div>
 </main><footer>مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده <span>✦</span> سامانه آموزشی</footer>
-<script src="/app.js?v=canva-dashboard-20261124-1"></script></body></html>
+<script src="/app.js?v=student-portal-20261124-1"></script></body></html>
