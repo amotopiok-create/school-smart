@@ -198,6 +198,16 @@ app.post('/api/announcements',auth,roles('admin','deputy','teacher'),async(req,r
  if(req.sb){const {error}=await req.sb.from('notices').insert({title:String(title).slice(0,120),body:String(body).slice(0,3000),author_id:req.user.id,published:true});if(error)return res.status(400).json({error:error.message});return res.json({ok:true});}
  db.prepare('INSERT INTO announcements(title,body,author_id) VALUES(?,?,?)').run(title,body,req.user.id);res.json({ok:true});
 });
+app.get('/api/public/announcements',async(req,res)=>{
+ res.set('Cache-Control','public, max-age=60, stale-while-revalidate=300');
+ if(supabase){
+  const {data,error}=await supabase.from('notices').select('id,title,body,created_at').eq('published',true).order('created_at',{ascending:false}).limit(10);
+  if(error)return res.status(503).json({error:'اطلاعیه‌ها فعلاً در دسترس نیستند.'});
+  return res.json({announcements:data||[]});
+ }
+ const announcements=db.prepare('SELECT id,title,body,created_at FROM announcements ORDER BY id DESC LIMIT 10').all();
+ return res.json({announcements});
+});
 app.post('/api/assignments',auth,roles('admin','deputy','teacher'),(req,res)=>{
  const {title,description,grade,dueDate}=req.body||{};if(!title)return res.status(400).json({error:'عنوان تکلیف لازم است.'});
  db.prepare('INSERT INTO assignments(title,description,grade,due_date,teacher_id) VALUES(?,?,?,?,?)').run(title,description||'',Number(grade)||null,dueDate||null,req.user.id);res.json({ok:true});
