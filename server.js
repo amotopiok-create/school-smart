@@ -212,10 +212,20 @@ app.post('/api/login',(req,res)=>{
 });
 app.post('/api/logout',(req,res)=>{res.clearCookie('school_token');res.json({ok:true});});
 app.get('/api/me',auth,(req,res)=>res.json({user:req.user}));
-app.get('/api/dashboard',auth,(req,res)=>{
+app.get('/api/dashboard',auth,async(req,res)=>{
+ if(req.sb){
+  const students=await req.sb.from('profiles').select('id',{count:'exact',head:true}).eq('role','student');
+  const teachers=await req.sb.from('profiles').select('id',{count:'exact',head:true}).in('role',['teacher','deputy']);
+  const assignmentCount=await req.sb.from('assignments').select('id',{count:'exact',head:true});
+  const announcements=await req.sb.from('notices').select('id,title,body,created_at').eq('published',true).order('created_at',{ascending:false}).limit(8);
+  const assignments=await req.sb.from('assignments').select('id,title,description,due_at').order('created_at',{ascending:false}).limit(8);
+  const grades=req.user.role==='student'?await req.sb.from('grades').select('title,score,note,created_at').eq('student_id',req.user.id).order('created_at',{ascending:false}).limit(20):{data:[],error:null};
+  if(students.error||teachers.error||assignmentCount.error||announcements.error||assignments.error||grades.error)return res.status(503).json({error:'دریافت اطلاعات داشبورد انجام نشد.'});
+  return res.json({announcements:announcements.data||[],assignments:(assignments.data||[]).map(a=>({...a,due_date:a.due_at})),stats:{students:students.count||0,teachers:teachers.count||0,assignments:assignmentCount.count||0},grades:(grades.data||[]).map(g=>({...g,subject:g.title}))});
+ }
  const announcements=db.prepare('SELECT id,title,body,created_at FROM announcements ORDER BY id DESC LIMIT 8').all();
  const assignments=db.prepare('SELECT id,title,description,grade,due_date FROM assignments WHERE grade IS NULL OR grade=? ORDER BY id DESC LIMIT 8').all(req.user.grade||0);
- const stats={students:db.prepare("SELECT COUNT(*) n FROM users WHERE role='student'").get().n,teachers:db.prepare("SELECT COUNT(*) n FROM users WHERE role='teacher'").get().n,assignments:db.prepare('SELECT COUNT(*) n FROM assignments').get().n};
+ const stats={students:db.prepare('SELECT COUNT(*) n FROM users WHERE role=?').get('student').n,teachers:db.prepare('SELECT COUNT(*) n FROM users WHERE role=?').get('teacher').n,assignments:db.prepare('SELECT COUNT(*) n FROM assignments').get().n};
  const grades=req.user.role==='student'?db.prepare('SELECT subject,score,note,created_at FROM grades WHERE student_id=? ORDER BY id DESC').all(req.user.id):[];
  res.json({announcements,assignments,stats,grades});
 });
