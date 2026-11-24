@@ -208,10 +208,10 @@ app.get('/api/dashboard',auth,async(req,res)=>{
   const teachers=await req.sb.from('profiles').select('id',{count:'exact',head:true}).in('role',['teacher','deputy']);
   const assignmentCount=await req.sb.from('assignments').select('id',{count:'exact',head:true});
   const announcements=await req.sb.from('notices').select('id,title,body,created_at').eq('published',true).order('created_at',{ascending:false}).limit(8);
-  const assignments=await req.sb.from('assignments').select('id,title,description,due_at').order('created_at',{ascending:false}).limit(8);
+  const assignments=await req.sb.from('assignments').select('id,title,description,due_at,classes(grade)').order('created_at',{ascending:false}).limit(8);
   const grades=req.user.role==='student'?await req.sb.from('grades').select('title,score,note,created_at').eq('student_id',req.user.id).order('created_at',{ascending:false}).limit(20):{data:[],error:null};
   if(students.error||teachers.error||assignmentCount.error||announcements.error||assignments.error||grades.error)return res.status(503).json({error:'دریافت اطلاعات داشبورد انجام نشد.'});
-  return res.json({announcements:announcements.data||[],assignments:(assignments.data||[]).map(a=>({...a,due_date:a.due_at})),stats:{students:students.count||0,teachers:teachers.count||0,assignments:assignmentCount.count||0},grades:(grades.data||[]).map(g=>({...g,subject:g.title}))});
+  return res.json({announcements:announcements.data||[],assignments:(assignments.data||[]).map(a=>({...a,due_date:a.due_at,grade:a.classes?.grade||null})),stats:{students:students.count||0,teachers:teachers.count||0,assignments:assignmentCount.count||0},grades:(grades.data||[]).map(g=>({...g,subject:g.title}))});
  }
  const announcements=db.prepare('SELECT id,title,body,created_at FROM announcements ORDER BY id DESC LIMIT 8').all();
  const assignments=db.prepare('SELECT id,title,description,grade,due_date FROM assignments WHERE grade IS NULL OR grade=? ORDER BY id DESC LIMIT 8').all(req.user.grade||0);
@@ -303,7 +303,7 @@ app.post('/api/grades',auth,roles('admin','deputy','teacher'),async(req,res)=>{
  res.json({ok:true});
 });
 app.get('/api/attendance',auth,roles('admin','deputy','teacher'),async(req,res)=>{
- const day=/^\\d{4}-\\d{2}-\\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
+ const day=/^\d{4}-\d{2}-\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
  if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
  const [studentsResult,rowsResult]=await Promise.all([
   req.sb.from('profiles').select('id,full_name,grade,classes(name)').eq('role','student').order('grade').order('full_name'),
@@ -316,7 +316,7 @@ app.get('/api/attendance',auth,roles('admin','deputy','teacher'),async(req,res)=
 });
 app.post('/api/attendance',auth,roles('admin','deputy','teacher'),async(req,res)=>{
  const {studentId,day,status}=req.body||{};
- if(!studentId||!day||!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(day))||!['present','absent','late'].includes(status))return res.status(400).json({error:'اطلاعات حضور و غیاب نامعتبر است.'});
+ if(!studentId||!day||!/^\d{4}-\d{2}-\d{2}$/.test(String(day))||!['present','absent','late'].includes(status))return res.status(400).json({error:'اطلاعات حضور و غیاب نامعتبر است.'});
  if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
  const {data:student,error:studentError}=await req.sb.from('profiles').select('id,class_id,role').eq('id',studentId).single();
  if(studentError||!student||student.role!=='student')return res.status(400).json({error:'دانش‌آموز انتخاب‌شده معتبر نیست.'});
@@ -455,12 +455,11 @@ app.get('/api/portal/registrations',auth,roles('admin'),async(req,res)=>{
  if(error)return res.status(400).json({error:error.message});
  res.json({requests:data||[]});
 });
-app.post('/api/portal/registrations/:id/:status',auth,roles('admin'),async(req,res)=>{
+app.post('/api/portal/registrations/:id/:status',auth,roles('admin','deputy'),async(req,res)=>{
  const status=req.params.status;
  if(!['approved','rejected'].includes(status))return res.status(400).json({error:'وضعیت نامعتبر است.'});
- const {error}=await req.sb.rpc('school_admin_set_registration',{p_request_id:req.params.id,p_status:status});
- if(error)return res.status(400).json({error:error.message});
- res.json({ok:true});
+ try{await callSchoolAdmin(req,{action:status==='approved'?'approve_request':'reject_request',request_id:req.params.id});res.json({ok:true});}
+ catch(e){res.status(400).json({error:e.message});}
 });
 
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
