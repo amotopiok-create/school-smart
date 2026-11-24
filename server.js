@@ -4,11 +4,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
+const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
+app.set('trust proxy', 1);
+const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+  : null;
 const dbPath = process.env.DATABASE_PATH || (process.env.VERCEL ? '/tmp/school.db' : path.join(__dirname, 'school.db'));
 const db = new Database(dbPath);
 const PORT = process.env.PORT || 3000;
@@ -187,6 +192,18 @@ app.post('/api/submissions',auth,roles('student'),(req,res)=>{
 });
 app.get('/api/reports',auth,roles('admin','deputy','teacher'),(req,res)=>{
  const data=db.prepare(`SELECT u.id,u.full_name,u.grade,u.class_name,g.subject,g.score,g.created_at FROM users u LEFT JOIN grades g ON g.student_id=u.id WHERE u.role='student' ORDER BY u.full_name,g.id DESC`).all();res.json({rows:data});
+});
+app.get('/api/platform/health', async (req,res) => {
+  if (!supabase) return res.status(503).json({ ok:false, database:'not_configured' });
+  try {
+    const { error } = await supabase.from('school_settings').select('*').limit(1);
+    if (error) throw error;
+    res.set('Cache-Control','no-store');
+    res.json({ ok:true, database:'connected', storage:'supabase-postgres', checkedAt:new Date().toISOString() });
+  } catch (error) {
+    console.error('Supabase health check failed:', error.message);
+    res.status(503).json({ ok:false, database:'unavailable' });
+  }
 });
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.listen(PORT,()=>console.log(`School Smart running at http://localhost:${PORT}`));
