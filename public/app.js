@@ -100,4 +100,4 @@ function showWelcomeIntro(){
  setTimeout(start,reduced?350:1450);
 }
 showWelcomeIntro();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=20261124-2',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=20261124-3',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
