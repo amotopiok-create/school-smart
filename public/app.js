@@ -23,13 +23,13 @@ async function loadPage(page){const titles={attendance:['حضور و غیاب','
 try{dashboard=await api('/dashboard');if(page==='attendance')await renderAttendance(host);if(page==='home')renderHome(host);if(page==='assignments')renderAssignments(host);if(page==='grades')renderGrades(host);if(page==='people')await renderPeople(host);if(page==='reports')await renderReports(host);if(page==='manage')renderManage(host)}catch(e){host.innerHTML=`<div class="data-card">${esc(e.message)}</div>`}}
 function renderHome(host){
  const s=dashboard.stats||{};
- const metrics=[{label:'دانش‌آموزان',value:Number(s.students)||0,color:'#61d8ff'},{label:'معلمان',value:Number(s.teachers)||0,color:'#a78bfa'},{label:'تکالیف',value:Number(s.assignments)||0,color:'#f6c76b'}];
+ const metrics=[{label:'دانش‌آموزان',value:Number(s.students)||0,color:'#9b8066'},{label:'معلمان',value:Number(s.teachers)||0,color:'#75685d'},{label:'تکالیف',value:Number(s.assignments)||0,color:'#c1a98f'}];
  const max=Math.max(1,...metrics.map(x=>x.value));
- const bars=metrics.map((m,i)=>{const y=34+i*58,w=Math.max(3,Math.round((m.value/max)*440));return '<g><text x="510" y="'+(y+17)+'" text-anchor="end" class="chart-label">'+m.label+'</text><rect x="28" y="'+y+'" width="440" height="24" rx="12" class="chart-track"/><rect x="28" y="'+y+'" width="'+w+'" height="24" rx="12" fill="'+m.color+'"/><text x="18" y="'+(y+17)+'" text-anchor="start" class="chart-value">'+m.value+'</text></g>'}).join('');
+ const bars=metrics.map((m,i)=>{const y=34+i*58,w=Math.max(3,Math.round((m.value/max)*440));return '<g><text x="510" y="'+(y+17)+'" text-anchor="end" class="chart-label">'+m.label+'</text><rect x="28" y="'+y+'" width="440" height="24" rx="12" class="chart-track"/><rect class="chart-bar" x="28" y="'+y+'" width="'+w+'" height="24" rx="12" fill="'+m.color+'"/><text x="18" y="'+(y+17)+'" text-anchor="start" class="chart-value">'+m.value+'</text></g>'}).join('');
  const total=metrics.reduce((n,m)=>n+m.value,0)||1;let offset=0;
- const segments=metrics.map(m=>{const pct=m.value/total*100,part='<circle r="52" cx="70" cy="70" fill="none" stroke="'+m.color+'" stroke-width="16" stroke-dasharray="'+(pct*3.267)+' 326.7" stroke-dashoffset="-'+(offset*3.267)+'" transform="rotate(-90 70 70)"/>';offset+=pct;return part}).join('');
+ const segments=metrics.map(m=>{const pct=m.value/total*100,part='<circle r="52" cx="70" cy="70" fill="none" stroke="'+m.color+'" class="chart-segment" stroke-width="16" stroke-dasharray="'+(pct*3.267)+' 326.7" stroke-dashoffset="-'+(offset*3.267)+'" transform="rotate(-90 70 70)"/>';offset+=pct;return part}).join('');
  const gradeRows=(dashboard.grades||[]).slice(0,6);
- const gradeChart=gradeRows.map((g,i)=>{const score=Math.max(0,Math.min(20,Number(g.score)||0)),y=28+i*39;return '<g><text x="320" y="'+(y+15)+'" text-anchor="end" class="chart-label">'+esc(g.subject)+'</text><rect x="10" y="'+y+'" width="265" height="17" rx="8" class="chart-track"/><rect x="10" y="'+y+'" width="'+(score/20*265)+'" height="17" rx="8" fill="#69dbc9"/><text x="2" y="'+(y+14)+'" class="chart-value">'+score+'</text></g>'}).join('');
+ const gradeChart=gradeRows.map((g,i)=>{const score=Math.max(0,Math.min(20,Number(g.score)||0)),y=28+i*39;return '<g><text x="320" y="'+(y+15)+'" text-anchor="end" class="chart-label">'+esc(g.subject)+'</text><rect x="10" y="'+y+'" width="265" height="17" rx="8" class="chart-track"/><rect x="10" y="'+y+'" width="'+(score/20*265)+'" height="17" rx="8" fill="#9b8066" class="chart-bar"/><text x="2" y="'+(y+14)+'" class="chart-value">'+score+'</text></g>'}).join('');
  host.innerHTML='<div class="welcome-strip"><div><b>خوش آمدی، '+esc(currentUser.name)+'</b><span>به فضای آموزشی مدرسه قاضی‌زاده خوش آمدی.</span></div><span class="strip-spark">✦</span></div>'+
  '<div class="stats-grid"><div class="stat-card"><span class="stat-icon">♙</span><small>دانش‌آموزان</small><b>'+ (s.students||0) +'</b><span class="stat-foot">آمار کل سامانه</span></div><div class="stat-card"><span class="stat-icon">✎</span><small>معلمان</small><b>'+(s.teachers||0)+'</b><span class="stat-foot">کادر آموزشی</span></div><div class="stat-card"><span class="stat-icon">▤</span><small>تکالیف ثبت‌شده</small><b>'+(s.assignments||0)+'</b><span class="stat-foot">فعالیت‌های آموزشی</span></div></div>'+
  '<div class="chart-grid"><section class="data-card chart-card"><div class="chart-heading"><div><span class="chart-kicker">تحلیل سامانه</span><h3 class="section-title">آمار کلی مدرسه</h3></div><span class="chart-symbol">✧</span></div><svg class="bar-chart" viewBox="0 0 530 220" role="img" aria-label="نمودار آماری مدرسه">'+bars+'</svg></section>'+
@@ -55,7 +55,7 @@ function showWelcomeIntro(){
  document.body.appendChild(layer);
  const start=()=>{layer.classList.add('leaving');setTimeout(()=>{layer.remove();boot()},650)};
  const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- setTimeout(start,reduced?500:2450);
+ setTimeout(start,reduced?350:1450);
 }
 showWelcomeIntro();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=20261124-2',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
