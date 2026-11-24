@@ -256,3 +256,56 @@ body.dark{background:#101d19}
 .dark .home-highlights>div,.dark .feature-card{background:#192b25;border-color:#2a4036}
 @media(max-width:900px){.app-layout{grid-template-columns:1fr}.sidebar{position:relative;top:auto}.chart-grid{grid-template-columns:1fr}.grade-card{grid-column:auto}}
 @media(max-width:560px){.page-head{padding:17px;border-radius:17px}.welcome-strip{padding:17px}.stat-card{padding:15px}.data-card,.chart-card{padding:16px}.chart-legend{width:100%}.app-layout{gap:14px}}
+
+
+/* Purpose-built login redesign: preserve all application hooks and forms */
+.login-redesign{display:grid!important;grid-template-columns:minmax(0,1.04fr) minmax(360px,.86fr);gap:0;max-width:1120px;margin:28px auto 42px;min-height:690px;background:#fffefa;border:1px solid #e7ebdf;border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(27,68,53,.10)}
+.login-showcase{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:690px;padding:30px 34px;background:radial-gradient(circle at 18% 78%,rgba(239,177,105,.25),transparent 28%),linear-gradient(145deg,#123e35 0%,#176c58 60%,#23947a 120%);color:#fff;overflow:hidden}
+.login-showcase:before,.login-showcase:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.13);border-radius:50%;pointer-events:none}
+.login-showcase:before{width:470px;height:470px;right:-160px;top:100px}
+.login-showcase:after{width:330px;height:330px;right:-90px;top:170px}
+.showcase-top,.showcase-footer{position:relative;z-index:2;display:flex;align-items:center;gap:12px;font-size:12px;color:#e1f1e8}
+.showcase-seal{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:#fff;color:#176b58;font-size:24px;font-weight:900;box-shadow:0 8px 20px #082c2440}
+.showcase-live{margin-right:auto;display:flex;align-items:center;gap:7px;color:#c5e6d6;font-size:10px}
+.showcase-live i{width:7px;height:7px;border-radius:50%;background:#9be0ad;box-shadow:0 0 0 4px #9be0ad25}
+.showcase-main{position:relative;z-index:2;padding:45px 0 20px}
+.showcase-kicker{font-size:12px;font-weight:800;color:#f2c98f;letter-spacing:.3px}
+.showcase-main h1{font-size:clamp(42px,5vw,64px);line-height:1.55;margin:15px 0;color:#fff;font-weight:900}
+.showcase-main h1 em{font-style:normal;color:#f5c58a}
+.showcase-main p{max-width:360px;color:#d2e9dd;font-size:14px;line-height:2.2}
+.showcase-orbit{position:relative;width:270px;height:235px;margin:28px auto 0}
+.orbit-ring{position:absolute;border:1px solid #ffffff35;border-radius:50%;inset:15px 25px;transform:rotate(-22deg)}
+.ring-two{inset:0 48px;transform:rotate(48deg);border-color:#f5c58a70}
+.orbit-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:104px;height:112px;display:grid;place-items:center;border-radius:27px 27px 34px 20px;background:linear-gradient(145deg,#fff,#e8f4e9);color:#176b58;font-size:58px;font-weight:900;box-shadow:0 18px 45px #082b2445}
+.orbit-chip{position:absolute;padding:9px 13px;border:1px solid #ffffff35;border-radius:12px;background:#ffffff18;backdrop-filter:blur(8px);font-size:11px;color:#fff}
+.chip-one{top:16px;right:-3px}.chip-two{bottom:10px;left:-4px}
+.showcase-footer{border-top:1px solid #ffffff25;padding-top:18px;justify-content:space-between;font-size:10px;color:#c7e0d3}
+.login-side{display:flex;flex-direction:column;justify-content:center;padding:clamp(25px,4vw,48px);background:#fffefa}
+.login-side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.login-overline{font-size:11px;color:#19866c;font-weight:800}
+.login-side-head h2{font-size:27px;color:#173f35;margin:7px 0 5px;font-weight:900}
+.login-side-head p{font-size:12px;color:#819087;margin:0}
+.login-star{width:50px;height:50px;border-radius:17px;display:grid;place-items:center;background:#eaf5ed;color:#16866d;font-size:25px}
+.login-role-wrap{margin-bottom:17px}
+.login-role-wrap label,.login-form-redesign label{display:block;color:#4e675c;font-size:12px;font-weight:800;margin-bottom:15px}
+.login-role-wrap select,.login-form-redesign input{height:53px;border:1px solid #e3eae2;border-radius:14px;background:#f9fbf7;color:#29483c;padding:0 15px;font-size:13px;margin-top:8px;box-shadow:none}
+.login-form-redesign input:focus,.login-role-wrap select:focus{border-color:#219477;box-shadow:0 0 0 4px #21947717}
+.login-form-redesign>div:not(.fixed-email){display:block}
+.login-form-redesign .full{width:100%;justify-content:space-between;align-items:center;margin-top:7px}
+.login-submit{height:55px;border-radius:15px;background:linear-gradient(110deg,#168b72,#176f68);font-size:14px;box-shadow:0 12px 25px #168b7225}
+.login-side-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #edf0e9;margin-top:26px;padding-top:20px;color:#7b8a82;font-size:11px}
+.register-link{border:0;background:transparent;color:#16866d;font-size:12px;font-weight:800;padding:6px}
+.login-security{margin-top:20px;padding:12px 14px;border-radius:13px;background:#f1f7f0;color:#71877a;font-size:10px;display:flex;align-items:center;gap:8px}
+.login-security span{color:#16866d;font-size:17px}
+.login-redesign .fixed-email{font-size:11px;color:#71877a;margin:0 0 14px}
+.login-redesign .fixed-email b{color:#1a6d58}
+.login-redesign .text-btn{color:#16866d}
+@media(max-width:820px){.login-redesign{grid-template-columns:1fr;max-width:560px;min-height:0;margin:12px auto 28px;border-radius:24px}.login-showcase{min-height:290px;padding:22px 24px 18px}.showcase-main{padding:28px 0 4px}.showcase-main h1{font-size:38px;line-height:1.35;margin:10px 0}.showcase-main p{font-size:12px;max-width:300px;margin:0}.showcase-orbit{position:absolute;width:150px;height:145px;left:0;bottom:20px;margin:0;opacity:.92}.orbit-core{width:65px;height:72px;border-radius:19px;font-size:38px}.orbit-ring{inset:12px 17px}.ring-two{inset:0 30px}.orbit-chip{font-size:9px;padding:6px 8px}.chip-one{top:4px;right:-5px}.chip-two{bottom:3px;left:-7px}.showcase-footer{font-size:9px;margin-top:20px}.login-side{padding:27px 24px 23px}.login-side-head{margin-bottom:22px}}
+@media(max-width:430px){.login-showcase{min-height:270px;padding:19px 19px 15px}.showcase-main h1{font-size:34px}.showcase-main p{max-width:210px;font-size:11px}.showcase-orbit{width:125px;height:130px;bottom:30px}.orbit-core{width:58px;height:64px;font-size:34px}.showcase-footer span:first-child{max-width:220px}.login-side{padding:24px 19px}.login-side-head h2{font-size:24px}}
+body.dark .login-redesign{background:#172b23;border-color:#30473a}
+body.dark .login-side{background:#172b23}
+body.dark .login-side-head h2{color:#e7f2e9}
+body.dark .login-side-head p,body.dark .login-side-bottom{color:#a9bcb0}
+body.dark .login-role-wrap label,body.dark .login-form-redesign label{color:#c4d7ca}
+body.dark .login-role-wrap select,body.dark .login-form-redesign input{background:#20372c;border-color:#365243;color:#edf6ef}
+body.dark .login-security{background:#20372c;color:#b5c9bb}
