@@ -323,7 +323,7 @@ app.post('/api/portal/messages',auth,async(req,res)=>{
 });
 app.get('/api/portal/contacts',auth,async(req,res)=>{
  if(!req.sb)return res.json({contacts:[]});
- const {data,error}=await req.sb.from('profiles').select('id,full_name,role,grade,avatar_url').neq('id',req.user.id).order('full_name').limit(200);
+ const {data,error}=await req.sb.rpc('school_directory');
  if(error)return res.status(400).json({error:error.message});
  res.json({contacts:data||[]});
 });
@@ -349,7 +349,7 @@ app.post('/api/portal/notifications/:id/read',auth,async(req,res)=>{
 });
 app.get('/api/portal/council',auth,async(req,res)=>{
  if(!req.sb)return res.json({members:[],students:[]});
- const {data,error}=await req.sb.from('council_members').select('id,user_id,position,grade,class_name,active,profile:profiles!council_members_user_id_fkey(full_name,avatar_url)').eq('active',true).order('grade');
+ const {data,error}=await req.sb.rpc('school_council_list');
  if(error)return res.status(400).json({error:error.message});
  let students=[];
  if(req.user.role==='admin'){
