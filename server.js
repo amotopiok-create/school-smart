@@ -227,7 +227,7 @@ app.post('/api/grades',auth,roles('admin','deputy','teacher'),(req,res)=>{
  db.prepare('INSERT INTO grades(student_id,subject,score,note,teacher_id) VALUES(?,?,?,?,?)').run(Number(studentId),subject,Number(score),note||'',req.user.id);res.json({ok:true});
 });
 app.get('/api/attendance',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const day=/^\d{4}-\\d{2}-\\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
+ const day=/^\d{4}-\d{2}-\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
  const students=db.prepare("SELECT id,full_name,grade,class_name FROM users WHERE role='student' AND approved=1 ORDER BY grade,class_name,full_name").all();
  const rows=db.prepare("SELECT a.student_id,a.status,u.full_name,u.class_name FROM attendance a JOIN users u ON u.id=a.student_id WHERE a.day=? ORDER BY u.grade,u.class_name,u.full_name").all(day);
  res.json({day,students,rows});
