@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#176b58"><meta name="description" content="سامانه آموزشی و مدیریتی مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده">
-<link rel="manifest" href="/manifest.json"><link rel="stylesheet" href="/style.css?v=school-dashboard-unified-20261124-1">
+<link rel="manifest" href="/manifest.json"><link rel="stylesheet" href="/style.css?v=school-login-redesign-20261124-2">
 <title>مدرسه قاضی‌زاده | سامانه هوشمند</title>
 </head>
 <body>
@@ -19,15 +19,41 @@
 <div class="home-section-head"><span class="eyebrow">همه چیز در یک جا</span><h2>مدرسه، نزدیک‌تر و هوشمندتر</h2><p>ابزارهای موردنیاز برای یک تجربه آموزشی منظم و دلنشین</p></div>
 <div class="feature-grid"><article class="feature-card"><span>▤</span><b>تکالیف و تمرین‌ها</b><p>دسترسی آسان به فعالیت‌ها و پیگیری تکالیف آموزشی.</p></article><article class="feature-card"><span>✧</span><b>نمرات و کارنامه</b><p>مشاهده روند پیشرفت و دستاوردهای تحصیلی.</p></article><article class="feature-card"><span>◷</span><b>حضور و غیاب</b><p>مدیریت و پیگیری منظم وضعیت حضور دانش‌آموزان.</p></article></div>
 <div class="home-bottom"><div><span class="eyebrow">قدم بعدی با شماست</span><h2>به فضای آموزشی مدرسه بپیوندید</h2><p>برای دیدن امکانات اختصاصی، وارد حساب کاربری خود شوید.</p></div><button id="bottomLoginBtn" class="btn btn-primary">ورود به سامانه ←</button></div></section>
-<section id="loginView" class="login-layout hidden">
-<div class="welcome-panel"><span class="eyebrow">آموزش • ارتباط • پیشرفت</span><h1>مدرسه‌ای هوشمند،<br><em>آینده‌ای روشن</em></h1><p>سامانه یکپارچه مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده برای همراهی دانش‌آموزان، آموزگاران و مدیران.</p>
-<div class="welcome-stats"><div><b>۶</b><small>پایه تحصیلی</small></div><div><b>۲۴/۷</b><small>دسترسی آنلاین</small></div><div><b>۶</b><small>پایه تحصیلی</small></div></div>
-<div class="welcome-points"><span>✦ تکالیف و کارنامه</span><span>✦ حضور و غیاب</span><span>✦ اطلاعیه‌های مدرسه</span></div></div>
-<div class="panel login-card"><div class="panel-heading"><span class="mini-icon">✦</span><div><h2>ورود به سامانه</h2><p>برای ادامه، اطلاعات حساب خود را وارد کنید.</p></div></div>
-<label>نوع ورود<select id="loginRole"><option value="student">دانش‌آموز</option><option value="teacher">معلم</option><option value="deputy">معاون</option><option value="admin">مدیر</option></select></label>
-<form id="loginForm"><div id="staffLoginFields"><label>نام کاربری<input name="username" autocomplete="username" required placeholder="نام کاربری"></label><label>رمز عبور<input name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور"></label></div><div id="adminLoginFields" class="hidden"><label>نام مدیر<input id="adminName" maxlength="60" required placeholder="نام مدیر را وارد کنید"></label><div class="fixed-email">ایمیل مجاز مدیر: <b>amotopiok@gmail.com</b></div><button type="button" id="sendAdminCode" class="btn btn-primary full">ارسال کد ورود به ایمیل</button></div><button id="loginSubmit" class="btn btn-primary full">ورود به پنل <span>←</span></button></form>
-<form id="adminCodeForm" class="hidden"><label>کد ارسال‌شده به ایمیل<input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="کد ۶ رقمی"></label><button class="btn btn-primary full">تأیید کد و ورود مدیر</button><button type="button" id="backToAdmin" class="text-btn">بازگشت</button></form>
-<button id="showRegister" class="text-btn">دانش‌آموز جدید هستید؟ درخواست ثبت‌نام</button><div class="demo-note">ورود مدیر فقط با کد یک‌بارمصرف ارسال‌شده به ایمیل ثابت انجام می‌شود.</div></div></section>
+<section id="loginView" class="login-layout login-redesign hidden">
+  <div class="login-showcase">
+    <div class="showcase-top"><span class="showcase-seal">ق</span><span>فضای یادگیری قاضی‌زاده</span><span class="showcase-live"><i></i> سامانه آموزشی</span></div>
+    <div class="showcase-main">
+      <span class="showcase-kicker">آموزش • ارتباط • پیشرفت</span>
+      <h1>هر روز،<br><em>یک قدم جلوتر</em></h1>
+      <p>همراه دانش‌آموزان، آموزگاران و خانواده‌ها در مسیر یادگیری و رشد.</p>
+      <div class="showcase-orbit" aria-hidden="true"><div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="orbit-core">ق</div><span class="orbit-chip chip-one">✦ یادگیری</span><span class="orbit-chip chip-two">▤ پیشرفت</span></div>
+    </div>
+    <div class="showcase-footer"><span>مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده</span><span>پایه‌های اول تا ششم</span></div>
+  </div>
+  <div class="login-side">
+    <div class="login-side-head"><div><span class="login-overline">خوش آمدید</span><h2>ورود به سامانه</h2><p>برای ادامه، حساب کاربری خود را وارد کنید.</p></div><span class="login-star">✦</span></div>
+    <div class="login-role-wrap"><label for="loginRole">نوع حساب کاربری</label><select id="loginRole"><option value="student">دانش‌آموز</option><option value="teacher">معلم</option><option value="deputy">معاون</option><option value="admin">مدیر</option></select></div>
+    <form id="loginForm" class="login-form-redesign">
+      <div id="staffLoginFields">
+        <label>نام کاربری<input name="username" autocomplete="username" required placeholder="نام کاربری خود را وارد کنید"></label>
+        <label>رمز عبور<input name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"></label>
+      </div>
+      <div id="adminLoginFields" class="hidden">
+        <label>نام مدیر<input id="adminName" maxlength="60" required placeholder="نام مدیر را وارد کنید"></label>
+        <div class="fixed-email">ایمیل مجاز مدیر: <b>amotopiok@gmail.com</b></div>
+        <button type="button" id="sendAdminCode" class="btn btn-primary full">ارسال کد ورود به ایمیل <span>←</span></button>
+      </div>
+      <button id="loginSubmit" class="btn btn-primary full login-submit">ورود به پنل <span>←</span></button>
+    </form>
+    <form id="adminCodeForm" class="hidden login-form-redesign">
+      <label>کد ارسال‌شده به ایمیل<input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="کد ۶ رقمی"></label>
+      <button class="btn btn-primary full login-submit">تأیید کد و ورود مدیر</button>
+      <button type="button" id="backToAdmin" class="text-btn">بازگشت</button>
+    </form>
+    <div class="login-side-bottom"><span>حساب دانش‌آموزی نداری؟</span><button id="showRegister" class="register-link">درخواست ثبت‌نام <b>←</b></button></div>
+    <div class="login-security"><span>♧</span> ورود امن و اختصاصی اعضای مدرسه</div>
+  </div>
+</section>
 <section id="registerView" class="panel register-card hidden"><button class="text-btn" id="backLogin">← بازگشت به ورود</button><h2>درخواست ساخت حساب دانش‌آموز</h2><p class="muted">درخواست شما پس از تأیید مدیر یا معاون قابل استفاده خواهد بود.</p>
 <form id="registerForm" class="form-grid"><label>نام و نام خانوادگی<input name="fullName" autocomplete="name" required></label><label>نام کاربری<input name="username" autocomplete="username" required></label><label>رمز عبور (حداقل ۸ کاراکتر)<input name="password" type="password" minlength="8" autocomplete="new-password" required></label><label>پایه تحصیلی<select name="grade"><option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option><option value="4">چهارم</option><option value="5">پنجم</option><option value="6" selected>ششم</option></select></label><label>نام کلاس<input name="className" placeholder="مثلاً ششم الف"></label><button class="btn btn-primary">ارسال درخواست</button></form></section>
 <section id="appView" class="app-layout hidden">
