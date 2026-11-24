@@ -60,22 +60,8 @@ CREATE TABLE IF NOT EXISTS submissions (
 // Safe schema upgrade for existing installations.
 const userColumns = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
 if (!userColumns.includes('approved')) db.exec('ALTER TABLE users ADD COLUMN approved INTEGER NOT NULL DEFAULT 1');
-const count = db.prepare('SELECT COUNT(*) n FROM users').get().n;
-if (!count) {
- const hash = bcrypt.hashSync('Admin12345!', 12);
- db.prepare('INSERT INTO users(full_name,username,password_hash,role) VALUES(?,?,?,?)')
-   .run('مدیر سامانه','admin',hash,'admin');
- const t = bcrypt.hashSync('Teacher123!',12);
- db.prepare('INSERT INTO users(full_name,username,password_hash,role,grade,class_name) VALUES(?,?,?,?,?,?)')
-   .run('معلم نمونه','teacher',t,'teacher',4,'چهارم الف');
- const s = bcrypt.hashSync('Student123!',12);
- db.prepare('INSERT INTO users(full_name,username,password_hash,role,grade,class_name) VALUES(?,?,?,?,?,?)')
-   .run('دانش‌آموز نمونه','student',s,'student',4,'چهارم الف');
- db.prepare('INSERT INTO announcements(title,body) VALUES(?,?)')
-   .run('به سامانه مدرسه هوشمند خوش آمدید','اطلاعیه‌ها و تکالیف مدرسه را از این بخش دنبال کنید.');
- db.prepare('INSERT INTO assignments(title,description,grade,due_date) VALUES(?,?,?,?)')
-   .run('تمرین ریاضی','تمرین‌های صفحه امروز کتاب را حل کنید.',4,'2026-11-25');
-}
+// No demo or hard-coded user accounts are created on deployment.
+
 async function auth(req,res,next) {
  const token = req.cookies.school_token || (req.headers.authorization||'').replace('Bearer ','');
  if (!token) return res.status(401).json({error:'برای ادامه وارد حساب شوید.'});
