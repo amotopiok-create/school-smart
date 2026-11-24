@@ -108,6 +108,8 @@ function setSchoolSession(res,session){
 
 const adminMagicAttempts = new Map();
 app.post('/api/admin/magic-link',async(req,res)=>{
+ const origin=req.get('origin');
+ if(origin&&origin!=='https://school-smart-preview.vercel.app')return res.status(403).json({error:'درخواست ورود از مبدأ نامعتبر است.'});
  if(!supabase)return res.status(503).json({error:'سرویس ورود امن مدیر در دسترس نیست.'});
  const ip=String(req.ip||'unknown'),now=Date.now(),prior=adminMagicAttempts.get(ip);
  if(prior&&now-prior.startedAt<15*60*1000&&prior.count>=3)return res.status(429).json({error:'درخواست‌های ورود زیاد است. ۱۵ دقیقه دیگر تلاش کنید.'});
