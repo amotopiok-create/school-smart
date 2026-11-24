@@ -14,6 +14,11 @@ app.set('trust proxy', 1);
 const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
   : null;
+// A server-only service-role client is used only after the private admin JWT is verified.
+// Never expose this key to browser code or return it from an API route.
+const supabaseAdmin = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+  : null;
 const dbPath = process.env.DATABASE_PATH || (process.env.VERCEL ? '/tmp/school.db' : path.join(__dirname, 'school.db'));
 const db = new Database(dbPath);
 const PORT = process.env.PORT || 3000;
@@ -65,7 +70,12 @@ if (!userColumns.includes('approved')) db.exec('ALTER TABLE users ADD COLUMN app
 async function auth(req,res,next) {
  const token = req.cookies.school_token || (req.headers.authorization||'').replace('Bearer ','');
  if (!token) return res.status(401).json({error:'برای ادامه وارد حساب شوید.'});
- try { req.user = jwt.verify(token, SECRET); return next(); } catch {}
+ try {
+  req.user = jwt.verify(token, SECRET);
+  // Admin routes can use persistent Supabase storage when the server-side key is configured.
+  if (req.user.role === 'admin' && supabaseAdmin) req.sb = supabaseAdmin;
+  return next();
+ } catch {}
  if (!supabase) return res.status(401).json({error:'نشست معتبر نیست.'});
  try {
   const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}});
