@@ -85,7 +85,7 @@ async function auth(req,res,next) {
   const profile=Array.isArray(rows)?rows[0]:rows;
   if(profileError||!profile) return res.status(403).json({error:'پروفایل کاربری پیدا نشد.'});
   if(!profile.approved) return res.status(403).json({error:'درخواست ثبت‌نام شما هنوز توسط مدیر تأیید نشده است.'});
-  req.sb=sb;req.authUser=authData.user;
+  req.sb=sb;req.authUser=authData.user;req.authToken=token;
   req.user={id:profile.profile_id,name:profile.full_name,role:profile.role,grade:profile.grade,phone:profile.phone,avatarUrl:profile.avatar_url,authProvider:'supabase'};
   return next();
  } catch(e){return res.status(401).json({error:'اعتبارسنجی حساب انجام نشد.'});}
@@ -105,6 +105,37 @@ const adminEmail = 'amotopiok@gmail.com';
 function setSchoolSession(res,session){
  res.cookie('school_token',session.access_token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:Math.min(Number(session.expires_in||3600),3600)*1000});
 }
+
+const adminMagicAttempts = new Map();
+app.post('/api/admin/magic-link',async(req,res)=>{
+ if(!supabase)return res.status(503).json({error:'سرویس ورود امن مدیر در دسترس نیست.'});
+ const ip=String(req.ip||'unknown'),now=Date.now(),prior=adminMagicAttempts.get(ip);
+ if(prior&&now-prior.startedAt<15*60*1000&&prior.count>=3)return res.status(429).json({error:'درخواست‌های ورود زیاد است. ۱۵ دقیقه دیگر تلاش کنید.'});
+ try{
+  const {error}=await supabase.auth.signInWithOtp({email:adminEmail,options:{shouldCreateUser:false,emailRedirectTo:'https://school-smart-preview.vercel.app/owner'}});
+  if(error)throw error;
+  if(!prior||now-prior.startedAt>=15*60*1000)adminMagicAttempts.set(ip,{startedAt:now,count:1});
+  else adminMagicAttempts.set(ip,{...prior,count:prior.count+1});
+  res.set('Cache-Control','no-store');
+  res.json({ok:true,message:'لینک ورود مدیر به ایمیل ثبت‌شده ارسال شد. صندوق ورودی و پوشه هرزنامه را بررسی کنید.'});
+ }catch(e){res.status(400).json({error:e.message||'ارسال لینک ورود انجام نشد.'});}
+});
+app.post('/api/auth/session',async(req,res)=>{
+ const token=String(req.body?.accessToken||'').trim();
+ if(!token||token.length>5000)return res.status(400).json({error:'نشست ورود معتبر نیست.'});
+ try{
+  const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:authData,error:authError}=await sb.auth.getUser(token);
+  const user=authData?.user;
+  if(authError||!user||String(user.email||'').toLowerCase()!==adminEmail||user.app_metadata?.role!=='admin')return res.status(403).json({error:'این لینک برای حساب مدیر معتبر نیست.'});
+  const {data:rows,error}=await sb.rpc('school_current_user_status');
+  const profile=Array.isArray(rows)?rows[0]:rows;
+  if(error||!profile||profile.role!=='admin')return res.status(403).json({error:'دسترسی مدیر تأیید نشد.'});
+  setSchoolSession(res,{access_token:token,expires_in:3600});
+  res.set('Cache-Control','no-store');
+  return res.json({user:{id:profile.profile_id,name:profile.full_name,role:profile.role,grade:profile.grade,phone:profile.phone,avatarUrl:profile.avatar_url}});
+ }catch(e){return res.status(401).json({error:'اعتبارسنجی لینک ورود انجام نشد.'});}
+});
 app.post('/api/auth/register',async(req,res)=>{
  const fullName=String(req.body?.fullName||'').trim().slice(0,100),email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),grade=Number(req.body?.grade)||null;
  if(!fullName||!/^\S+@\S+\.\S+$/.test(email)||password.length<8||!grade||grade<1||grade>6)return res.status(400).json({error:'نام، ایمیل معتبر، رمز حداقل ۸ کاراکتری و پایه را وارد کنید.'});
@@ -188,25 +219,52 @@ app.get('/api/dashboard',auth,async(req,res)=>{
  const grades=req.user.role==='student'?db.prepare('SELECT subject,score,note,created_at FROM grades WHERE student_id=? ORDER BY id DESC').all(req.user.id):[];
  res.json({announcements,assignments,stats,grades});
 });
-app.get('/api/users',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const rows=db.prepare('SELECT id,full_name,username,role,grade,class_name,approved,created_at FROM users ORDER BY approved,role,full_name').all();res.json({users:rows});
+
+async function callSchoolAdmin(req,payload){
+ if(!req.authToken||!process.env.SUPABASE_URL||!process.env.SUPABASE_ANON_KEY)throw new Error('نشست امن مدیر در دسترس نیست.');
+ const response=await fetch(process.env.SUPABASE_URL+'/functions/v1/school-admin',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','apikey':process.env.SUPABASE_ANON_KEY,'Authorization':'Bearer '+req.authToken},
+  body:JSON.stringify(payload)
+ });
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(data.error||'عملیات مدیریت انجام نشد.');
+ return data;
+}
+app.get('/api/users',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ try{
+  if(req.user.role==='admin'||req.user.role==='deputy'){
+   const data=await callSchoolAdmin(req,{action:'list_users'});
+   return res.json({users:data.users||[]});
+  }
+  const {data,error}=await req.sb.from('profiles').select('id,full_name,role,grade,phone,classes(name),created_at').order('full_name');
+  if(error)throw error;
+  return res.json({users:(data||[]).map(p=>({id:p.id,full_name:p.full_name,username:p.phone||'',role:p.role,grade:p.grade,class_name:p.classes?.name||'',approved:true,created_at:p.created_at}))});
+ }catch(e){res.status(503).json({error:e.message||'فهرست کاربران دریافت نشد.'});}
 });
-app.post('/api/users',auth,roles('admin','deputy'),(req,res)=>{
+app.post('/api/users',auth,roles('admin','deputy'),async(req,res)=>{
  const {fullName,username,password,role,grade,className}=req.body||{};
- if(!fullName||!username||!password||password.length<8||!['student','teacher','deputy','admin'].includes(role)) return res.status(400).json({error:'اطلاعات کاربر کامل یا معتبر نیست.'});
- try{db.prepare('INSERT INTO users(full_name,username,password_hash,role,grade,class_name) VALUES(?,?,?,?,?,?)').run(fullName,username,bcrypt.hashSync(password,12),role,Number(grade)||null,className||'');res.json({ok:true});}
- catch{res.status(409).json({error:'نام کاربری تکراری است.'});}
+ if(!fullName||!username||!password||password.length<8||!['student','teacher','deputy'].includes(role))return res.status(400).json({error:'اطلاعات کاربر کامل یا معتبر نیست.'});
+ try{
+  const data=await callSchoolAdmin(req,{action:'create_user',full_name:fullName,email:username,password,role,grade,class_name:className});
+  res.json({ok:true,id:data.id});
+ }catch(e){res.status(400).json({error:e.message});}
 });
-app.post('/api/users/:id/approve',auth,roles('admin','deputy'),(req,res)=>{
- const result=db.prepare("UPDATE users SET approved=1 WHERE id=? AND role='student'").run(Number(req.params.id));
- if(!result.changes)return res.status(404).json({error:'درخواست دانش‌آموز پیدا نشد.'});
- res.json({ok:true});
+app.post('/api/users/:id/approve',auth,roles('admin','deputy'),async(req,res)=>{
+ try{await callSchoolAdmin(req,{action:'approve_request',request_id:req.params.id});res.json({ok:true});}
+ catch(e){res.status(400).json({error:e.message});}
 });
-app.delete('/api/users/:id',auth,roles('admin'),(req,res)=>{if(Number(req.params.id)===req.user.id)return res.status(400).json({error:'حذف حساب واردشده ممکن نیست.'});db.prepare('DELETE FROM users WHERE id=?').run(req.params.id);res.json({ok:true});});
+app.delete('/api/users/:id',auth,roles('admin'),async(req,res)=>{
+ try{await callSchoolAdmin(req,{action:'delete_user',user_id:req.params.id});res.json({ok:true});}
+ catch(e){res.status(400).json({error:e.message});}
+});
 app.post('/api/announcements',auth,roles('admin','deputy','teacher'),async(req,res)=>{
- const {title,body}=req.body||{};if(!title||!body)return res.status(400).json({error:'عنوان و متن لازم است.'});
- if(req.sb){const {error}=await req.sb.from('notices').insert({title:String(title).slice(0,120),body:String(body).slice(0,3000),author_id:req.user.id,published:true});if(error)return res.status(400).json({error:error.message});return res.json({ok:true});}
- db.prepare('INSERT INTO announcements(title,body,author_id) VALUES(?,?,?)').run(title,body,req.user.id);res.json({ok:true});
+ const {title,body}=req.body||{};
+ if(!title||!body)return res.status(400).json({error:'عنوان و متن لازم است.'});
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const {error}=await req.sb.from('notices').insert({title:String(title).slice(0,120),body:String(body).slice(0,3000),author_id:req.user.id,published:true});
+ if(error)return res.status(400).json({error:'انتشار اطلاعیه انجام نشد.'});
+ return res.json({ok:true});
 });
 app.get('/api/public/announcements',async(req,res)=>{
  res.set('Cache-Control','public, max-age=60, stale-while-revalidate=300');
@@ -215,34 +273,71 @@ app.get('/api/public/announcements',async(req,res)=>{
   if(error)return res.status(503).json({error:'اطلاعیه‌ها فعلاً در دسترس نیستند.'});
   return res.json({announcements:data||[]});
  }
- const announcements=db.prepare('SELECT id,title,body,created_at FROM announcements ORDER BY id DESC LIMIT 10').all();
- return res.json({announcements});
+ return res.json({announcements:[]});
 });
-app.post('/api/assignments',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const {title,description,grade,dueDate}=req.body||{};if(!title)return res.status(400).json({error:'عنوان تکلیف لازم است.'});
- db.prepare('INSERT INTO assignments(title,description,grade,due_date,teacher_id) VALUES(?,?,?,?,?)').run(title,description||'',Number(grade)||null,dueDate||null,req.user.id);res.json({ok:true});
+app.post('/api/assignments',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ const {title,description,grade,dueDate}=req.body||{};
+ if(!title)return res.status(400).json({error:'عنوان تکلیف لازم است.'});
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ let classId=null;
+ if(Number(grade)){
+  const {data:classes,error:classError}=await req.sb.from('classes').select('id').eq('grade',Number(grade)).order('name').limit(1);
+  if(classError)return res.status(400).json({error:'کلاس پایه انتخاب‌شده پیدا نشد.'});
+  if(!classes?.length)return res.status(400).json({error:'ابتدا کلاس این پایه را در سامانه تعریف کنید.'});
+  classId=classes[0].id;
+ }
+ const dueAt=dueDate?String(dueDate)+'T23:59:59.000Z':null;
+ const {error}=await req.sb.from('assignments').insert({title:String(title).slice(0,160),description:String(description||'').slice(0,5000),class_id:classId,teacher_id:req.user.id,due_at:dueAt});
+ if(error)return res.status(400).json({error:'ثبت تکلیف انجام نشد.'});
+ res.json({ok:true});
 });
-app.post('/api/grades',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const {studentId,subject,score,note}=req.body||{};if(!studentId||!subject||score===''||Number(score)<0||Number(score)>20)return res.status(400).json({error:'نمره باید بین صفر تا ۲۰ باشد.'});
- db.prepare('INSERT INTO grades(student_id,subject,score,note,teacher_id) VALUES(?,?,?,?,?)').run(Number(studentId),subject,Number(score),note||'',req.user.id);res.json({ok:true});
+app.post('/api/grades',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ const {studentId,subject,score,note}=req.body||{};
+ if(!studentId||!subject||score===''||Number(score)<0||Number(score)>20)return res.status(400).json({error:'نمره باید بین صفر تا ۲۰ باشد.'});
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const {data:student,error:studentError}=await req.sb.from('profiles').select('id,role,grade').eq('id',studentId).single();
+ if(studentError||!student||student.role!=='student')return res.status(400).json({error:'دانش‌آموز انتخاب‌شده معتبر نیست.'});
+ const {data:subjectRow}=await req.sb.from('subjects').select('id').eq('name',String(subject).trim()).or('grade.is.null,grade.eq.'+Number(student.grade||0)).limit(1).maybeSingle();
+ const {error}=await req.sb.from('grades').insert({student_id:studentId,subject_id:subjectRow?.id||null,title:String(subject).trim().slice(0,100),score:Number(score),note:String(note||'').slice(0,1000),teacher_id:req.user.id});
+ if(error)return res.status(400).json({error:'ذخیره نمره انجام نشد.'});
+ res.json({ok:true});
 });
-app.get('/api/attendance',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const day=/^\d{4}-\d{2}-\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
- const students=db.prepare("SELECT id,full_name,grade,class_name FROM users WHERE role='student' AND approved=1 ORDER BY grade,class_name,full_name").all();
- const rows=db.prepare("SELECT a.student_id,a.status,u.full_name,u.class_name FROM attendance a JOIN users u ON u.id=a.student_id WHERE a.day=? ORDER BY u.grade,u.class_name,u.full_name").all(day);
+app.get('/api/attendance',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ const day=/^\\d{4}-\\d{2}-\\d{2}$/.test(req.query.day||'')?req.query.day:new Date().toISOString().slice(0,10);
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const [studentsResult,rowsResult]=await Promise.all([
+  req.sb.from('profiles').select('id,full_name,grade,classes(name)').eq('role','student').order('grade').order('full_name'),
+  req.sb.from('attendance').select('student_id,status,profiles!attendance_student_id_fkey(full_name,classes(name))').eq('attendance_date',day)
+ ]);
+ if(studentsResult.error||rowsResult.error)return res.status(503).json({error:'دریافت اطلاعات حضور و غیاب انجام نشد.'});
+ const students=(studentsResult.data||[]).map(p=>({id:p.id,full_name:p.full_name,grade:p.grade,class_name:p.classes?.name||''}));
+ const rows=(rowsResult.data||[]).map(r=>({student_id:r.student_id,status:r.status,full_name:r.profiles?.full_name||'',class_name:r.profiles?.classes?.name||''}));
  res.json({day,students,rows});
 });
-app.post('/api/attendance',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const {studentId,day,status}=req.body||{};if(!studentId||!day||!['present','absent','late'].includes(status))return res.status(400).json({error:'اطلاعات حضور و غیاب نامعتبر است.'});
- db.prepare(`INSERT INTO attendance(student_id,day,status,teacher_id) VALUES(?,?,?,?) ON CONFLICT(student_id,day) DO UPDATE SET status=excluded.status,teacher_id=excluded.teacher_id`).run(Number(studentId),day,status,req.user.id);res.json({ok:true});
+app.post('/api/attendance',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ const {studentId,day,status}=req.body||{};
+ if(!studentId||!day||!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(day))||!['present','absent','late'].includes(status))return res.status(400).json({error:'اطلاعات حضور و غیاب نامعتبر است.'});
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const {data:student,error:studentError}=await req.sb.from('profiles').select('id,class_id,role').eq('id',studentId).single();
+ if(studentError||!student||student.role!=='student')return res.status(400).json({error:'دانش‌آموز انتخاب‌شده معتبر نیست.'});
+ const {error}=await req.sb.from('attendance').upsert({student_id:studentId,class_id:student.class_id,attendance_date:day,status,recorded_by:req.user.id},{onConflict:'student_id,attendance_date'});
+ if(error)return res.status(400).json({error:'ثبت حضور و غیاب انجام نشد.'});
+ res.json({ok:true});
 });
-app.post('/api/submissions',auth,roles('student'),(req,res)=>{
- const {assignmentId,answer}=req.body||{};if(!assignmentId||!answer)return res.status(400).json({error:'پاسخ تکلیف را وارد کنید.'});
- try{db.prepare('INSERT INTO submissions(assignment_id,student_id,answer) VALUES(?,?,?)').run(Number(assignmentId),req.user.id,answer);res.json({ok:true});}
- catch{res.status(409).json({error:'برای این تکلیف قبلاً پاسخی ارسال شده است.'});}
+app.post('/api/submissions',auth,roles('student'),async(req,res)=>{
+ const {assignmentId,answer}=req.body||{};
+ if(!assignmentId||!answer)return res.status(400).json({error:'پاسخ تکلیف را وارد کنید.'});
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const {error}=await req.sb.from('assignment_submissions').insert({assignment_id:assignmentId,student_id:req.user.id,answer:String(answer).slice(0,10000)});
+ if(error)return res.status(error.code==='23505'?409:400).json({error:error.code==='23505'?'برای این تکلیف قبلاً پاسخی ارسال شده است.':'ارسال پاسخ تکلیف انجام نشد.'});
+ res.json({ok:true});
 });
-app.get('/api/reports',auth,roles('admin','deputy','teacher'),(req,res)=>{
- const data=db.prepare(`SELECT u.id,u.full_name,u.grade,u.class_name,g.subject,g.score,g.created_at FROM users u LEFT JOIN grades g ON g.student_id=u.id WHERE u.role='student' ORDER BY u.full_name,g.id DESC`).all();res.json({rows:data});
+app.get('/api/reports',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده پایدار در دسترس نیست.'});
+ const {data,error}=await req.sb.from('grades').select('student_id,title,score,created_at,student:profiles!grades_student_id_fkey(full_name,grade,classes(name))').order('created_at',{ascending:false}).limit(2000);
+ if(error)return res.status(503).json({error:'گزارش نمرات دریافت نشد.'});
+ const rows=(data||[]).map(g=>({id:g.student_id,full_name:g.student?.full_name||'',grade:g.student?.grade||null,class_name:g.student?.classes?.name||'',subject:g.title,score:g.score,created_at:g.created_at}));
+ res.json({rows});
 });
 app.get('/api/platform/health', async (req,res) => {
   if (!supabase) return res.status(503).json({ ok:false, database:'not_configured' });
