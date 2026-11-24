@@ -125,41 +125,29 @@ app.post('/api/auth/login',async(req,res)=>{
  }catch(e){res.status(401).json({error:e.message||'ورود انجام نشد.'});}
 });
 const adminLoginAttempts = new Map();
-app.post('/api/admin/login',async(req,res)=>{
- const username=String(req.body?.username||'').trim().toLowerCase();
+app.post('/api/admin/login',(req,res)=>{
  const password=String(req.body?.password||'');
  const ip=String(req.ip||'unknown');
  const now=Date.now();
  const attempt=adminLoginAttempts.get(ip);
- if(attempt && now-attempt.startedAt<15*60*1000 && attempt.count>=8){
+ if(attempt && now-attempt.startedAt<15*60*1000 && attempt.count>=6)
   return res.status(429).json({error:'تعداد تلاش‌ها زیاد است. ۱۵ دقیقه دیگر دوباره امتحان کنید.'});
- }
- if(!username||!password) return res.status(400).json({error:'نام کاربری و رمز عبور لازم است.'});
- if(username!==adminEmail || !supabase){
+ const expected=process.env.SCHOOL_ADMIN_PASSWORD;
+ if(!expected || !process.env.JWT_SECRET)
+  return res.status(503).json({error:'ورود مدیر هنوز به‌صورت امن پیکربندی نشده است.'});
+ const supplied=Buffer.from(password,'utf8'), stored=Buffer.from(expected,'utf8');
+ const valid=supplied.length===stored.length && crypto.timingSafeEqual(supplied,stored);
+ if(!valid){
   if(!attempt || now-attempt.startedAt>=15*60*1000) adminLoginAttempts.set(ip,{startedAt:now,count:1});
   else adminLoginAttempts.set(ip,{...attempt,count:attempt.count+1});
-  return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
+  return res.status(401).json({error:'رمز عبور نادرست است.'});
  }
- try{
-  const {data,error}=await supabase.auth.signInWithPassword({email:adminEmail,password});
-  if(error||!data?.session||!data?.user) throw new Error('ورود ناموفق بود.');
-  const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+data.session.access_token}},auth:{persistSession:false,autoRefreshToken:false}});
-  const {data:rows,error:pe}=await sb.rpc('school_current_user_status');
-  const p=Array.isArray(rows)?rows[0]:rows;
-  if(pe||!p||p.role!=='admin'||data.user.email?.toLowerCase()!==adminEmail){
-   await sb.auth.signOut().catch(()=>{});
-   return res.status(403).json({error:'این حساب، دسترسی مدیر مدرسه را ندارد.'});
-  }
-  adminLoginAttempts.delete(ip);
-  setSchoolSession(res,data.session);
-  return res.json({user:{id:p.profile_id,name:p.full_name,role:p.role,grade:p.grade,phone:p.phone,avatarUrl:p.avatar_url}});
- }catch(e){
-  if(!attempt || now-attempt.startedAt>=15*60*1000) adminLoginAttempts.set(ip,{startedAt:now,count:1});
-  else adminLoginAttempts.set(ip,{...attempt,count:attempt.count+1});
-  return res.status(401).json({error:'نام کاربری یا رمز عبور نادرست است.'});
- }
+ adminLoginAttempts.delete(ip);
+ const token=jwt.sign({id:'owner',name:'مدیر سامانه',role:'admin'},SECRET,{expiresIn:'4h'});
+ res.cookie('school_token',token,{httpOnly:true,sameSite:'strict',secure:process.env.NODE_ENV==='production',maxAge:4*60*60*1000,path:'/'});
+ res.set('Cache-Control','no-store');
+ return res.json({user:{id:'owner',name:'مدیر سامانه',role:'admin'}});
 });
-
 
 app.post('/api/login',(req,res)=>{
  const {username,password,role}=req.body||{};
