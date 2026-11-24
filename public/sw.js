@@ -1,5 +1,5 @@
-const CACHE='school-smart-student-portal-20261124-5';
-const CORE=['/','/style.css?v=school-public-v6-20261124','/app.js?v=school-public-v6-20261124','/manifest.json'];
+const CACHE='school-smart-student-portal-20261124-6';
+const CORE=['/','/style.css?v=school-public-v7-20261124','/app.js?v=school-public-v7-20261124','/manifest.json'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(CORE);await self.skipWaiting();})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('school-smart-')&&key!==CACHE).map(key=>caches.delete(key)));await self.clients.claim();})()));
 self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET'||new URL(request.url).origin!==self.location.origin||new URL(request.url).pathname.startsWith('/api/'))return;event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(request,{cache:'no-store'});if(response&&response.ok)cache.put(request,response.clone()).catch(()=>{});return response;}catch(error){const cached=await cache.match(request);if(cached)return cached;const fallback=await cache.match('/');if(request.mode==='navigate'&&fallback)return fallback;throw error;}})());});
