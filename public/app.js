@@ -16,6 +16,7 @@ function show(view){
 }
 function setUser(user){if(ownerMode&&user.role!=='admin'){show('loginView');return}currentUser=user;$('#userChip').textContent=user.name+' · '+({admin:'مدیر',deputy:'معاون',teacher:'معلم',student:'دانش‌آموز',parent:'ولی'}[user.role]||user.role);$('#dateLabel').textContent=new Intl.DateTimeFormat('fa-IR',{dateStyle:'full'}).format(new Date());$$('.nav-item').forEach(b=>{const roles=b.dataset.roles?.split(',');b.classList.toggle('hidden',!!roles&&!roles.includes(user.role))});show('appView');loadPage(user.role==='admin'?'manage':'home')}
 async function boot(){
+ if(ownerMode){location.replace('/owner-panel.html');return}
  const authHash=new URLSearchParams(location.hash.replace(/^#/,''));
  const accessToken=authHash.get('access_token');
  if(accessToken){
