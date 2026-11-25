@@ -114,7 +114,7 @@ app.post('/api/admin/magic-link',async(req,res)=>{
  const ip=String(req.ip||'unknown'),now=Date.now(),prior=adminMagicAttempts.get(ip);
  if(prior&&now-prior.startedAt<15*60*1000&&prior.count>=3)return res.status(429).json({error:'درخواست‌های ورود زیاد است. ۱۵ دقیقه دیگر تلاش کنید.'});
  try{
-  const {error}=await supabase.auth.signInWithOtp({email:adminEmail,options:{shouldCreateUser:false,emailRedirectTo:'https://school-smart-preview.vercel.app/owner-panel.html'}});
+  const {error}=await supabase.auth.signInWithOtp({email:adminEmail,options:{shouldCreateUser:false,emailRedirectTo:'https://school-smart-preview.vercel.app/owner'}});
   if(error)throw error;
   if(!prior||now-prior.startedAt>=15*60*1000)adminMagicAttempts.set(ip,{startedAt:now,count:1});
   else adminMagicAttempts.set(ip,{...prior,count:prior.count+1});
