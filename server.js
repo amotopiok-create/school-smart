@@ -114,7 +114,7 @@ app.post('/api/admin/magic-link',async(req,res)=>{
  const ip=String(req.ip||'unknown'),now=Date.now(),prior=adminMagicAttempts.get(ip);
  if(prior&&now-prior.startedAt<15*60*1000&&prior.count>=3)return res.status(429).json({error:'درخواست‌های ورود زیاد است. ۱۵ دقیقه دیگر تلاش کنید.'});
  try{
-  const {error}=await supabase.auth.signInWithOtp({email:adminEmail,options:{shouldCreateUser:false,emailRedirectTo:'https://school-smart-preview.vercel.app/owner'}});
+  const {error}=await supabase.auth.signInWithOtp({email:adminEmail,options:{shouldCreateUser:false,emailRedirectTo:'https://school-smart-preview.vercel.app/owner-panel.html'}});
   if(error)throw error;
   if(!prior||now-prior.startedAt>=15*60*1000)adminMagicAttempts.set(ip,{startedAt:now,count:1});
   else adminMagicAttempts.set(ip,{...prior,count:prior.count+1});
@@ -233,6 +233,14 @@ async function callSchoolAdmin(req,payload){
  if(!response.ok)throw new Error(data.error||'عملیات مدیریت انجام نشد.');
  return data;
 }
+app.get('/api/admin/registration-requests',auth,roles('admin'),async(req,res)=>{
+ try{const data=await callSchoolAdmin(req,{action:'list_registration_requests'});res.set('Cache-Control','no-store');res.json({requests:data.requests||[]});}
+ catch(e){res.status(503).json({error:e.message||'درخواست‌ها دریافت نشد.'});}
+});
+app.post('/api/admin/registration-requests/:id/reject',auth,roles('admin'),async(req,res)=>{
+ try{await callSchoolAdmin(req,{action:'reject_request',request_id:req.params.id});res.json({ok:true});}
+ catch(e){res.status(400).json({error:e.message||'رد درخواست انجام نشد.'});}
+});
 app.get('/api/users',auth,roles('admin','deputy','teacher'),async(req,res)=>{
  try{
   if(req.user.role==='admin'||req.user.role==='deputy'){
