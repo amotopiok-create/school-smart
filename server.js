@@ -72,8 +72,11 @@ async function auth(req,res,next) {
  if (!token) return res.status(401).json({error:'برای ادامه وارد حساب شوید.'});
  try {
   req.user = jwt.verify(token, SECRET);
-  // Admin routes can use persistent Supabase storage when the server-side key is configured.
-  if (req.user.role === 'admin' && supabaseAdmin) req.sb = supabaseAdmin;
+  // Admin requests require the server-only Supabase key; fail clearly instead of crashing routes.
+  if (req.user.role === 'admin') {
+   if (!supabaseAdmin) return res.status(503).json({error:'اتصال پایگاه داده مدیر تنظیم نشده است. کلید امن Supabase باید در تنظیمات سرور اضافه شود.'});
+   req.sb = supabaseAdmin;
+  }
   return next();
  } catch {}
  if (!supabase) return res.status(401).json({error:'نشست معتبر نیست.'});
