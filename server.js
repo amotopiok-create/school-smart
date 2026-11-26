@@ -116,7 +116,7 @@ app.post('/api/admin/password-login',(req,res)=>{
  if(prior&&now-prior.startedAt<15*60*1000&&prior.count>=5)return res.status(429).json({error:'تلاش‌های زیاد؛ ۱۵ دقیقه بعد دوباره امتحان کنید.'});
  if(!prior||now-prior.startedAt>=15*60*1000)adminPasswordAttempts.set(ip,{startedAt:now,count:1});
  else adminPasswordAttempts.set(ip,{...prior,count:prior.count+1});
- if(email!==adminEmail||password!==process.env.ADMIN_PASSWORD)return res.status(401).json({error:'ایمیل یا رمز اشتباه است.'});
+ if(email!==adminEmail||password!==process.env.SCHOOL_ADMIN_PASSWORD)return res.status(401).json({error:'ایمیل یا رمز اشتباه است.'});
  const token=jwt.sign({id:'school-admin',name:'مدیر مدرسه',role:'admin'},SECRET,{expiresIn:'8h'});
  res.cookie('school_token',token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:8*60*60*1000});
  res.set('Cache-Control','no-store');
