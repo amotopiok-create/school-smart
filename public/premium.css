@@ -358,3 +358,64 @@ footer{padding:25px 15px!important}
 .dark .home-highlights>div{background:#14243b!important;border-color:#2b405b!important}
 @media(max-width:850px){.home-hero{padding:28px 16px!important}.earth-stage{min-height:350px!important}}
 @media(max-width:600px){.public-reference-nav{justify-content:flex-start!important;overflow-x:auto!important;flex-wrap:nowrap!important}.public-reference-nav a{white-space:nowrap}.home-hero{border-radius:22px!important}.earth-stage{min-height:330px!important}.earth-video{width:min(76vw,320px)!important}.earth-caption{font-size:12px!important}.home-highlights>div{text-align:right!important}.feature-card{padding:16px!important}}
+
+
+/* NEW DESIGN SYSTEM: editorial school portal, replaces previous centered-planet layout */
+:root{--ink:#20302b;--muted:#74827a;--bg:#f7f5ef;--card:#fffefa;--line:#e8e5dc;--navy:#193c32;--teal:#2b7560;--shadow:0 12px 32px rgba(30,54,43,.06)}
+body{background:#f7f5ef!important;color:#20302b!important;font-family:Tahoma,'Vazirmatn',sans-serif!important}
+.bg-orb,.orb1,.orb2{display:none!important}
+.tehran-info-bar{background:#193c32!important;color:#e3eee8!important;border:0!important;justify-content:center!important}
+.topbar{position:relative!important;top:auto!important;height:auto!important;min-height:76px!important;background:#f7f5ef!important;box-shadow:none!important;border-bottom:1px solid #e6e2d8!important;backdrop-filter:none!important;padding:18px clamp(16px,5vw,80px)!important}
+.brand-mark{background:#d7e5d9!important;color:#193c32!important;box-shadow:none!important;border-radius:50%!important}
+.brand-mark:after{display:none!important}
+.brand b{font-size:17px!important;color:#193c32!important}
+.brand small{color:#7a887f!important}
+.top-actions .theme-choice{background:#fff!important;border-color:#e8e5dc!important}
+.shell{max-width:1320px!important;padding:24px clamp(14px,4vw,52px) 60px!important}
+.public-reference-nav{position:relative!important;top:auto!important;z-index:2!important;width:100%!important;max-width:none!important;justify-content:flex-start!important;margin:0 0 18px!important;padding:4px 8px!important;border:0!important;border-bottom:1px solid #e5e2d9!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+.public-reference-nav a{color:#58665d!important;font-size:13px!important;padding:12px 18px!important;border-radius:0!important;border-bottom:2px solid transparent!important}
+.public-reference-nav a:hover{background:transparent!important;color:#2b7560!important;border-color:#2b7560!important}
+.public-date-strip{background:#e8eee6!important;border-radius:12px!important;padding:13px 18px!important;margin-bottom:22px!important;color:#50655a!important}
+.public-date-live{color:#2b7560!important}
+.home-hero{display:grid!important;grid-template-columns:1fr 1fr!important;direction:rtl!important;align-items:center!important;min-height:430px!important;gap:35px!important;padding:clamp(25px,4vw,55px)!important;border-radius:22px!important;border:0!important;background:#e3ebe2!important;box-shadow:none!important;overflow:hidden!important}
+.home-hero:before,.home-hero:after{display:none!important}
+.hero-copy{max-width:650px!important;text-align:right!important;align-items:flex-start!important}
+.hero-copy .eyebrow,.home-section-head .eyebrow{display:inline-block!important;background:#d2e3d3!important;color:#2c6a54!important;border-radius:50px!important;padding:8px 14px!important;font-size:12px!important;font-weight:800!important}
+.hero-title{font-size:clamp(36px,5.3vw,68px)!important;line-height:1.35!important;letter-spacing:-2px!important;text-align:right!important;color:#193c32!important}
+.title-line{color:#193c32!important}
+.title-accent{color:#31795e!important}
+.hero-copy>p{max-width:520px!important;font-size:16px!important;line-height:2.15!important;color:#586c60!important;text-align:right!important}
+.hero-actions{justify-content:flex-start!important}
+.hero-actions .btn-primary{background:#193c32!important;box-shadow:none!important;border-radius:12px!important}
+.hero-actions .btn-soft{background:#f8faf5!important;color:#193c32!important;border-color:#cbd9cb!important}
+.hero-note{color:#6c7c71!important}
+.earth-stage{height:340px!important;min-height:300px!important;position:relative!important;border-radius:20px!important;overflow:hidden!important;background:radial-gradient(circle at 60% 35%,#f4f5dd 0,#b7d1b8 35%,#6c9b82 66%,#355d4a 100%)!important;box-shadow:none!important}
+.earth-stage:after{content:'قاضی‌زاده';position:absolute;inset:auto 0 22px;text-align:center;color:#fff;font-weight:900;font-size:clamp(30px,5vw,55px);letter-spacing:1px;text-shadow:0 3px 18px #1b4637aa;z-index:5}
+.earth-halo,.earth-orbit-ring,.earth-video,.earth-caption,.earth-floating{display:none!important}
+.earth-stage:before{content:'✦';position:absolute;top:18%;left:20%;font-size:60px;color:#f9f6d8;opacity:.7}
+.home-highlights{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:14px!important;margin:24px 0 42px!important}
+.home-highlights>div{background:#fffefa!important;border:1px solid #e8e5dc!important;border-radius:16px!important;padding:22px!important;box-shadow:none!important}
+.home-highlights b{color:#193c32!important;font-size:18px!important}
+.home-highlights span{color:#75847b!important}
+.public-news-section{background:transparent!important;border:0!important;padding:0!important;margin:35px 0!important;box-shadow:none!important}
+.home-section-head{text-align:right!important;margin:0 0 20px!important}
+.home-section-head h2{color:#193c32!important;font-size:clamp(24px,3vw,36px)!important;letter-spacing:-.6px!important}
+.home-section-head p{color:#75847b!important}
+.public-news-tools{background:#fffefa!important;border:1px solid #e8e5dc!important;border-radius:16px!important;padding:18px!important;box-shadow:none!important}
+.public-news-search-row input{background:#f7f5ef!important;border:1px solid #e8e5dc!important;border-radius:12px!important}
+.public-news-card,.feature-card{background:#fffefa!important;border:1px solid #e8e5dc!important;border-radius:18px!important;box-shadow:none!important;transition:transform .2s,border-color .2s!important}
+.public-news-card:hover,.feature-card:hover{transform:translateY(-3px)!important;border-color:#c5d8c7!important;box-shadow:0 10px 25px rgba(30,54,43,.06)!important}
+.feature-grid{gap:16px!important}
+.feature-card{padding:25px!important}
+.feature-card>span{background:#e4eee4!important;border-radius:12px!important;padding:12px!important}
+.home-bottom,.home-cta{background:#193c32!important;color:#f2f5ee!important;border-radius:22px!important}
+.school-bottom-nav{background:#193c32!important;border-color:#193c32!important}
+.school-bottom-nav button{color:#dbe9df!important}
+.school-bottom-nav button.active,.school-bottom-nav button:hover{background:#426e59!important;color:white!important}
+.dark body,.dark{background:#17221d!important}
+.dark .topbar,.dark .public-reference-nav,.dark .public-news-card,.dark .feature-card,.dark .public-news-tools,.dark .home-highlights>div{background:#202e27!important;border-color:#33483c!important}
+.dark .public-date-strip{background:#2a3b31!important;color:#d5e3d8!important}
+.dark .home-hero{background:#2a3d32!important}
+.dark .hero-title,.dark .title-line,.dark .home-section-head h2,.dark .brand b{color:#e5f0e6!important}
+.dark .hero-copy>p,.dark .home-section-head p{color:#c0d0c2!important}
+@media(max-width:760px){.home-hero{grid-template-columns:1fr!important;gap:22px!important;padding:25px!important}.hero-copy{order:1!important}.earth-stage{order:2!important;height:220px!important;min-height:220px!important}.hero-title{font-size:clamp(34px,10vw,49px)!important}.hero-copy>p{font-size:14px!important}.public-reference-nav{overflow-x:auto!important}.public-reference-nav a{padding:10px 12px!important}.home-highlights{grid-template-columns:1fr!important;gap:10px!important}.home-highlights>div{padding:18px!important}.public-date-strip{flex-wrap:wrap!important}}
