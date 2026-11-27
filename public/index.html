@@ -48,7 +48,7 @@
 </script></head>
 <body>
 <div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>
-<header class="topbar">
+<div class="tehran-info-bar" aria-label="تاریخ و آب و هوای تهران"><div class="tehran-info-item"><span class="tehran-info-icon">📅</span><span id="tehranDate">در حال دریافت تاریخ...</span></div><div class="tehran-info-item"><span class="tehran-info-icon">🕒</span><strong id="tehranClock">--:--:--</strong><span class="tehran-zone">تهران</span></div><div class="tehran-info-item" id="tehranWeather"><span class="tehran-info-icon">🌤️</span><span>در حال دریافت آب‌وهوا...</span></div></div>\n<header class="topbar">
 <a class="brand" href="#" aria-label="صفحه اصلی"><span class="brand-mark">ق</span><span><b>مدرسه قاضی‌زاده</b><small>سامانه هوشمند آموزش و مدیریت</small></span></a>
 <div class="top-actions"><button id="openLoginBtn" class="btn btn-primary hidden">ورود به سامانه</button><button id="publicBtn" class="btn btn-ghost hidden">وب‌سایت عمومی</button><button id="appBtn" class="btn btn-primary hidden">پنل کاربری</button><span id="userChip" class="user-chip">مهمان</span><button id="logoutBtn" class="btn btn-ghost hidden">خروج</button><button id="themeLightBtn" class="icon-btn theme-choice" type="button" aria-label="حالت روز" title="حالت روز">☀</button><button id="themeDarkBtn" class="icon-btn theme-choice" type="button" aria-label="حالت شب" title="حالت شب">☾</button></div>
 </header>
@@ -119,6 +119,15 @@
 </section><div id="toast" role="status" aria-live="polite" class="toast"></div>
 <nav class="school-bottom-nav" aria-label="دسترسی سریع"><button type="button" data-school-nav="home"><span class="nav-symbol">⌂</span><span>خانه</span></button><button type="button" data-school-nav="profile"><span class="nav-symbol">○</span><span>پروفایل</span></button><button type="button" data-school-nav="messages"><span class="nav-symbol">▢</span><span>پیام‌ها</span></button><button type="button" data-school-nav="assignments"><span class="nav-symbol">≡</span><span>تکالیف</span></button><button type="button" data-school-nav="council"><span class="nav-symbol">◇</span><span>شورا</span></button></nav>
 </main><footer>مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده <span>✦</span> سامانه آموزشی</footer>
-<script src="/app.js?v=school-public-v8-20261125"></script><script>document.addEventListener('DOMContentLoaded',function(){['quickAssignments','quickGrades','quickLogin'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('click',function(){var btn=document.getElementById('openLoginBtn');if(btn)btn.click();});});});</script>
+<script id="tehran-info-script">
+(function(){
+const dateEl=document.getElementById('tehranDate'),clockEl=document.getElementById('tehranClock'),weatherEl=document.getElementById('tehranWeather');
+function updateClock(){try{const now=new Date();dateEl.textContent=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(now);clockEl.textContent=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)}catch(e){dateEl.textContent='تاریخ تهران';clockEl.textContent='--:--'}}
+updateClock();setInterval(updateClock,1000);
+const icons={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',56:'🌧️',57:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',77:'❄️',80:'🌦️',81:'🌧️',82:'🌧️',85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'};
+async function weather(){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.6892&longitude=51.3890&current=temperature_2m,weather_code&timezone=Asia%2FTehran');if(!r.ok)throw Error();const d=await r.json(),w=d.current,code=w.weather_code;weatherEl.innerHTML='<span class="tehran-info-icon">'+(icons[code]||'🌤️')+'</span><span>تهران</span><strong>'+Math.round(w.temperature_2m)+'°C</strong><small>دمای فعلی</small>'}catch(e){weatherEl.innerHTML='<span class="tehran-info-icon">🌤️</span><span>آب‌وهوای تهران</span><small>دریافت نشد</small>'}}
+weather();setInterval(weather,15*60*1000);
+})();
+</script>\n<script src="/app.js?v=school-public-v8-20261125"></script><script>document.addEventListener('DOMContentLoaded',function(){['quickAssignments','quickGrades','quickLogin'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('click',function(){var btn=document.getElementById('openLoginBtn');if(btn)btn.click();});});});</script>
 <script id="school-bottom-nav-script">document.addEventListener('click',function(e){var b=e.target.closest('[data-school-nav]');if(!b)return;var p=b.getAttribute('data-school-nav');if(p==='home'){document.getElementById('publicBtn')?.click();return;}if(p==='profile'||p==='messages'||p==='assignments'||p==='council'){var login=document.getElementById('openLoginBtn');if(login)login.click();}});</script>
 </body></html>
