@@ -14,7 +14,7 @@
 <meta property="og:description" content="وب‌سایت رسمی مدرسه؛ معرفی، اخبار عمومی و سامانه آموزشی.">
 <meta property="og:url" content="https://school-smart-preview.vercel.app/">
 <meta name="twitter:card" content="summary">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.json"><link rel="stylesheet" href="/style.css?v=school-public-v9-20261125">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.json"><link rel="stylesheet" href="/style.css?v=school-public-v10-20261127">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"EducationalOrganization","name":"مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده","url":"https://school-smart-preview.vercel.app/","description":"وب‌سایت رسمی مدرسه مشارکتی مرحوم مهندس حاج مصطفی قاضی‌زاده، شامل معرفی مدرسه و دسترسی به سامانه آموزشی." ,"inLanguage":"fa"}
 </script>
@@ -115,6 +115,12 @@
 <button class="nav-item" data-page="council">✦ <span>شورای دانش‌آموزی</span></button>
 <button class="nav-item" data-page="registrations" data-roles="admin">♙ <span>درخواست‌های ثبت‌نام</span></button>
 
+
+<button class="nav-item" data-page="library">▣ <span>کتابخانه دیجیتال</span></button>
+<button class="nav-item" data-page="exams">✎ <span>مرکز آزمون</span></button>
+<button class="nav-item" data-page="calendar">▦ <span>تقویم مدرسه</span></button>
+<button class="nav-item" data-page="audit" data-roles="admin">⌁ <span>سوابق فعالیت‌ها</span></button>
+<button class="nav-item" data-page="children" data-roles="parent">♧ <span>فرزندان من</span></button>
 </nav><div class="sidebar-foot"><span class="status-dot"></span> سامانه فعال است</div></aside>
 <div class="content"><div class="page-head"><div><span class="eyebrow" id="dateLabel">داشبورد آموزشی</span><h1 id="pageTitle">سلام، خوش آمدید 👋</h1><p id="pageSubtitle">نمای کلی فعالیت‌های مدرسه</p></div><div class="head-mark">✦</div></div><div id="pageContent"></div></div>
 </section><div id="toast" role="status" aria-live="polite" class="toast"></div>
@@ -130,6 +136,6 @@ async function weather(){try{const r=await fetch('https://api.open-meteo.com/v1/
 weather();setInterval(weather,15*60*1000);
 })();
 </script>\n<script src="/app.js?v=school-public-v8-20261125"></script>
-<script src="/portal-enhancements.js?v=20261127-1" defer></script><script>document.addEventListener('DOMContentLoaded',function(){['quickAssignments','quickGrades','quickLogin'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('click',function(){var btn=document.getElementById('openLoginBtn');if(btn)btn.click();});});});</script>
+<script src="/portal-enhancements.js?v=20261127-2" defer></script><script src="/school-sections.js?v=20261127-1" defer></script><script>document.addEventListener('DOMContentLoaded',function(){['quickAssignments','quickGrades','quickLogin'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('click',function(){var btn=document.getElementById('openLoginBtn');if(btn)btn.click();});});});</script>
 <script id="school-bottom-nav-script">document.addEventListener('click',function(e){var b=e.target.closest('[data-school-nav]');if(!b)return;var p=b.getAttribute('data-school-nav');if(p==='home'){document.getElementById('publicBtn')?.click();return;}if(p==='profile'||p==='messages'||p==='assignments'||p==='council'){var login=document.getElementById('openLoginBtn');if(login)login.click();}});</script>
 </body></html>
