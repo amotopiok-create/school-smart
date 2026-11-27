@@ -243,3 +243,56 @@ body.dark{--bg:#0b1425;--ink:#e6edf7;--muted:#9aabc0;--card:#14233a;--line:#293b
  html{scroll-behavior:auto}
  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* STRUCTURAL LAYOUT REFINEMENT: align each section into a clear page rhythm */
+.public-home{display:block!important}
+.public-reference-nav{position:static!important;width:100%!important;justify-content:flex-start!important;margin:0 0 18px!important;border-radius:16px!important}
+.public-date-strip{max-width:none!important;margin:0 0 20px!important;padding:12px 18px!important;border:1px solid var(--line);border-radius:14px;background:#fff}
+.home-hero{display:grid!important;align-items:center!important;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)!important;gap:clamp(20px,4vw,50px)!important;margin:0!important}
+.hero-copy{position:relative;z-index:2}
+.hero-art{margin-inline:auto!important}
+.home-highlights{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin:18px 0 48px!important}
+.public-news-section{margin:0 0 48px!important}
+.home-section-head{text-align:right!important;max-width:none!important;margin:0 0 20px!important;padding-inline:3px}
+.home-section-head h2{margin:9px 0 4px!important}
+.public-news-tools{max-width:none!important;margin:0 0 16px!important;display:flex;flex-direction:column;gap:10px}
+.public-news-search-row{display:flex;align-items:center;gap:10px}
+.public-news-search-row input{flex:1;min-width:0}
+.public-news-list{max-width:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#schoolInfoBlocks .home-section-head{margin-bottom:18px!important}
+.feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin:0 0 48px!important}
+#schoolContactInfo{margin:0 0 45px!important}
+#schoolGallery{margin-top:0!important}
+.home-bottom{margin-top:0!important}
+#schoolGallery .feature-card{min-height:150px}
+.login-layout{align-items:stretch!important}
+.login-showcase,.login-side{min-height:100%}
+.app-layout{display:grid!important;grid-template-columns:240px minmax(0,1fr)!important}
+.sidebar{position:sticky!important;top:18px!important;max-height:calc(100vh - 36px);overflow:auto}
+.content{min-width:0}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:18px}
+#pageContent{display:grid;gap:18px}
+.panel,.stat-card,.data-card{min-width:0}
+.school-bottom-nav{display:none}
+footer{padding:25px 15px!important}
+@media(max-width:900px){
+ .home-hero{grid-template-columns:1fr!important}
+ .hero-art{min-height:260px}
+ .app-layout{grid-template-columns:1fr!important}
+ .sidebar{position:relative!important;top:auto!important;max-height:none}
+ .sidebar nav{display:flex;overflow-x:auto}
+ .school-bottom-nav{display:flex}
+}
+@media(max-width:650px){
+ .public-date-strip{flex-direction:column!important;align-items:flex-start!important}
+ .home-highlights{grid-template-columns:1fr!important}
+ .public-news-list{grid-template-columns:1fr!important}
+ .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .public-news-search-row{flex-direction:column;align-items:stretch}
+ .public-news-search-row .btn{width:100%}
+ .app-layout{display:block!important}
+ .page-head{align-items:flex-start}
+ .school-bottom-nav{display:flex}
+}
+@media(max-width:420px){.feature-grid{grid-template-columns:1fr!important}}
+.dark .public-date-strip{background:#14243b;border-color:#2b405b;color:#a7b7ca}
