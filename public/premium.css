@@ -35,3 +35,27 @@ footer{color:#81786b!important;padding:24px 15px 110px!important}
 body.dark{background:#111c2c!important;color:#e9e1d2!important}.dark .topbar,.dark .public-reference-nav,.dark .public-date-strip,.dark .home-highlights>div,.dark .public-news-tools,.dark .public-news-card,.dark .news-card,.dark .feature-card,.dark #schoolContactInfo,.dark .login-side,.dark .register-card,.dark .sidebar,.dark .page-head,.dark .panel,.dark .stat-card,.dark .data-card{background:#202d41!important;border-color:#35475d!important;color:#e9e1d2!important}.dark .public-reference-nav a{color:#d3c8b5!important}.dark .home-section-head h2,.dark .home-highlights b,.dark .feature-card>b,.dark .page-head h1,.dark .section-title,.dark .login-side-head h2{color:#f2eadc!important}.dark .home-section-head p,.dark .feature-card p,.dark .home-highlights span{color:#c2b8a8!important}.dark .home-hero,.dark .home-bottom,.dark .login-showcase{background:#101f37!important}.dark .public-news-search-row input,.dark input,.dark select,.dark textarea{background:#172338!important;color:#eee!important;border-color:#35475d!important}.dark .school-bottom-nav{background:#172338!important}.dark .home-hero:before{opacity:.5}
 @media(max-width:900px){.app-layout{grid-template-columns:1fr!important}.sidebar{position:relative!important;top:auto!important}.sidebar nav{display:flex!important;overflow:auto!important}.nav-item{flex:0 0 auto!important}.sidebar-foot{display:none!important}.login-layout{grid-template-columns:1fr!important}.login-showcase{min-height:390px!important}}
 @media(max-width:700px){.topbar{margin:8px!important;padding:12px 14px!important;border-radius:16px!important}.topbar{flex-direction:column!important;align-items:flex-start!important}.top-actions{width:100%!important;justify-content:flex-start!important;flex-wrap:wrap!important}.shell{padding:14px 12px 45px!important}.public-reference-nav{justify-content:flex-start!important;flex-wrap:nowrap!important}.public-reference-nav a{padding:10px 12px!important}.public-date-strip{border-radius:17px!important;flex-direction:column!important;align-items:flex-start!important}.home-hero{padding:28px 20px!important;border-radius:24px!important}.hero-title{font-size:clamp(30px,9vw,44px)!important}.hero-copy>p{font-size:14px!important}.home-highlights{grid-template-columns:1fr!important;margin:16px 0 34px!important}.home-highlights>div{padding:17px!important}.feature-grid,.public-news-list{grid-template-columns:1fr!important}.feature-card{min-height:unset!important}.home-bottom{flex-direction:column!important;align-items:flex-start!important;padding:24px!important}.login-showcase{min-height:410px!important}.school-bottom-nav{width:95vw!important;padding:8px!important;gap:2px!important}.school-bottom-nav button{min-width:48px!important;padding:7px 5px!important}.school-bottom-nav .nav-symbol{font-size:21px!important}.school-bottom-nav button span:last-child{font-size:10px!important}}
+
+/* Admin entrance + dashboard refinements */
+#loginView.login-redesign{max-width:1180px;margin:32px auto!important;padding:0!important;overflow:hidden!important;border:1px solid #dfd3bd!important;border-radius:30px!important;background:#f7efdf!important;box-shadow:0 14px 38px rgba(48,39,24,.08)!important}
+#loginView .login-showcase{position:relative!important;overflow:hidden!important;padding:clamp(28px,5vw,54px)!important;background:#172b4b!important;border-radius:0!important;min-height:560px!important}
+#loginView .showcase-seal{background:#c8a66b!important;color:#172b4b!important;border-radius:20px!important}
+#loginView .showcase-top,#loginView .showcase-footer{color:#d6dfeb!important}
+#loginView .showcase-live{background:#ffffff12!important;border:1px solid #ffffff22!important;border-radius:999px!important;padding:7px 12px!important}
+#loginView .showcase-main{position:relative!important;z-index:1!important}
+#loginView .showcase-kicker{display:inline-flex!important;background:#ffffff12!important;border:1px solid #ffffff20!important;border-radius:999px!important;padding:9px 14px!important;color:#e0c18c!important}
+#loginView .showcase-orbit{opacity:.55!important}
+#loginView .orbit-core{background:#c8a66b!important;color:#172b4b!important;box-shadow:none!important}
+#loginView .login-side{padding:clamp(25px,4vw,48px)!important;background:#f8f1e4!important;border:0!important;border-radius:0!important}
+#loginView .login-star{background:#e6d6b9!important;color:#172b4b!important;border-radius:15px!important}
+#loginView .login-overline{color:#a1814e!important}
+#loginView .login-side-bottom{border-top:1px solid #e2d5bf!important}
+#loginView .register-link{color:#172b4b!important}
+#loginView .login-security{background:#e9ddc6!important;border:1px solid #dfd0b6!important;border-radius:15px!important;color:#65543d!important}
+#loginView .login-submit{background:#172b4b!important;color:white!important;border-radius:15px!important}
+#appView .sidebar{border-radius:22px!important;padding:20px!important}
+#appView .side-title{color:#172b4b!important;font-weight:900!important}
+#appView .page-head{padding:24px!important}
+#appView .nav-item{transition:background .2s ease,color .2s ease!important}
+#appView .panel{padding:22px!important}
+@media(max-width:700px){#loginView.login-redesign{margin:14px 0!important;border-radius:22px!important}#loginView .login-showcase{min-height:420px!important;padding:25px 20px!important}#loginView .login-side{padding:24px 18px!important}}
