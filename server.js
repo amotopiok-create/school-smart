@@ -371,7 +371,7 @@ app.get('/api/reports',auth,roles('admin','deputy','teacher'),async(req,res)=>{
 app.get('/api/platform/health', async (req,res) => {
   if (!supabase) return res.status(503).json({ ok:false, database:'not_configured' });
   try {
-    const { error } = await supabase.from('school_settings').select('*').limit(1);
+    const { error } = await supabase.from('notices').select('id').limit(1);
     if (error) throw error;
     res.set('Cache-Control','no-store');
     res.json({ ok:true, database:'connected', storage:'supabase-postgres', checkedAt:new Date().toISOString() });
