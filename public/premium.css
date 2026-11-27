@@ -296,3 +296,19 @@ footer{padding:25px 15px!important}
 }
 @media(max-width:420px){.feature-grid{grid-template-columns:1fr!important}}
 .dark .public-date-strip{background:#14243b;border-color:#2b405b;color:#a7b7ca}
+
+/* Animated central globe in the public hero */
+.earth-stage{position:relative!important;min-height:430px!important;display:grid!important;place-items:center!important;overflow:hidden!important;isolation:isolate}
+.earth-halo{position:absolute;width:min(82%,380px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(43,142,255,.2),rgba(39,203,183,.08) 52%,transparent 72%);filter:blur(12px)}
+.earth-sphere{position:relative;width:min(66vw,310px);max-width:310px;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 28% 22%,#a5f3fc 0%,#38bdf8 16%,#1261a7 42%,#082c66 78%,#04152f 100%);box-shadow:inset -30px -18px 48px rgba(0,0,0,.45),inset 12px 12px 30px rgba(255,255,255,.3),0 0 48px rgba(39,139,255,.35);z-index:2}
+.earth-map{position:absolute;inset:-3%;background-image:url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg');background-size:cover;background-position:center;filter:brightness(1.4) saturate(.75);opacity:.8;mix-blend-mode:screen;animation:earthMapRoll 28s linear infinite;transform-origin:center;mask-image:radial-gradient(circle,#000 64%,transparent 72%)}
+.earth-shine{position:absolute;inset:0;border-radius:50%;background:linear-gradient(115deg,rgba(255,255,255,.24),transparent 35%,transparent 65%,rgba(2,10,32,.45));pointer-events:none}
+.earth-orbit-ring{position:absolute;width:min(86%,400px);aspect-ratio:1;border:1px solid rgba(82,184,255,.45);border-radius:50%;z-index:1}
+.ring-one{transform:rotateX(67deg) rotateZ(-18deg)}.ring-two{width:min(92%,430px);transform:rotateX(74deg) rotateZ(58deg);border-color:rgba(102,255,218,.28)}
+.earth-caption{position:absolute;bottom:28px;color:var(--text);font-weight:800;letter-spacing:.04em;z-index:3}
+.earth-floating{position:absolute;z-index:4;padding:12px 16px;border-radius:18px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.72);backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,30,80,.12);color:#153c65;font-weight:800}
+.earth-float-a{top:18%;right:3%;animation:earthBob 4s ease-in-out infinite}.earth-float-b{bottom:18%;left:3%;animation:earthBob 4.8s ease-in-out infinite reverse}
+@keyframes earthMapRoll{from{transform:translateX(-4%) rotate(0)}to{transform:translateX(4%) rotate(360deg)}}
+@keyframes earthBob{0%,100%{translate:0 0}50%{translate:0 -10px}}
+@media(max-width:650px){.earth-stage{min-height:340px!important}.earth-sphere{width:min(72vw,270px)}.earth-caption{bottom:8px;font-size:13px}.earth-floating{padding:9px 12px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.earth-map,.earth-floating{animation:none!important}}
