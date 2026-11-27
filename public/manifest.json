@@ -1,1 +1,18 @@
-{"name":"مدرسه هوشمند","short_name":"مدرسه","start_url":"/","display":"standalone","background_color":"#f3f6fb","theme_color":"#101d3a","lang":"fa","dir":"rtl","icons":[]}
+{
+  "name": "مدرسه هوشمند",
+  "short_name": "مدرسه",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#101d3a",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
