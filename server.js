@@ -497,5 +497,53 @@ app.post('/api/portal/registrations/:id/:status',auth,roles('admin','deputy'),as
  catch(e){res.status(400).json({error:e.message});}
 });
 
+
+/* Dedicated school sections backed by Supabase tables and row-level security. */
+app.get('/api/portal/library',auth,async(req,res)=>{
+ if(!req.sb)return res.json({items:[]});
+ const {data,error}=await req.sb.from('library_items').select('id,title,description,grade,subject,resource_type,resource_url,cover_image_path,created_at').eq('is_published',true).order('created_at',{ascending:false}).limit(100);
+ if(error)return res.status(503).json({error:'کتابخانه در حال حاضر در دسترس نیست.'});
+ res.set('Cache-Control','private, max-age=60');res.json({items:data||[]});
+});
+app.get('/api/portal/exams',auth,async(req,res)=>{
+ if(!req.sb)return res.json({exams:[]});
+ let q=req.sb.from('exams').select('id,title,class_id,subject_id,starts_at,duration_minutes,total_score,details,status,classes(name,grade),subjects(name)').order('starts_at',{ascending:true}).limit(100);
+ const {data,error}=await q;
+ if(error)return res.status(503).json({error:'آزمون‌ها دریافت نشدند.'});
+ res.set('Cache-Control','private, max-age=30');res.json({exams:data||[]});
+});
+app.get('/api/portal/exams/:id/questions',auth,async(req,res)=>{
+ if(!req.sb)return res.status(503).json({error:'سامانه آزمون متصل نیست.'});
+ const {data,error}=await req.sb.from('exam_questions').select('id,exam_id,prompt,question_type,options,score,sort_order').eq('exam_id',req.params.id).order('sort_order');
+ if(error)return res.status(403).json({error:'دسترسی به پرسش‌های این آزمون مجاز نیست.'});
+ res.json({questions:data||[]});
+});
+app.get('/api/portal/calendar',auth,async(req,res)=>{
+ if(!req.sb)return res.json({events:[]});
+ const {data,error}=await req.sb.from('school_events').select('id,title,details,starts_at,ends_at,event_type').gte('starts_at',new Date(Date.now()-90*86400000).toISOString()).order('starts_at').limit(150);
+ if(error)return res.status(503).json({error:'تقویم دریافت نشد.'});
+ res.set('Cache-Control','private, max-age=60');res.json({events:data||[]});
+});
+app.post('/api/portal/calendar',auth,roles('admin','deputy','teacher'),async(req,res)=>{
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده در دسترس نیست.'});
+ const title=String(req.body?.title||'').trim().slice(0,160),details=String(req.body?.details||'').trim().slice(0,3000),starts_at=req.body?.starts_at,event_type=String(req.body?.event_type||'activity');
+ if(title.length<2||!starts_at||!Number.isFinite(Date.parse(starts_at)))return res.status(400).json({error:'عنوان و زمان معتبر لازم است.'});
+ const {data,error}=await req.sb.from('school_events').insert({title,details,starts_at,event_type,created_by:req.user.id}).select('id,title,details,starts_at,event_type').single();
+ if(error)return res.status(400).json({error:'ثبت رویداد انجام نشد.'});
+ res.status(201).json({event:data});
+});
+app.get('/api/portal/audit',auth,roles('admin'),async(req,res)=>{
+ if(!req.sb)return res.status(503).json({error:'اتصال امن مدیر به پایگاه داده تنظیم نشده است.'});
+ const {data,error}=await req.sb.from('audit_logs').select('id,actor_id,action,entity_type,entity_id,details,created_at').order('created_at',{ascending:false}).limit(100);
+ if(error)return res.status(503).json({error:'سوابق فعالیت دریافت نشد.'});
+ res.json({logs:data||[]});
+});
+app.get('/api/portal/children',auth,roles('parent'),async(req,res)=>{
+ if(!req.sb)return res.status(503).json({error:'پایگاه داده در دسترس نیست.'});
+ const {data,error}=await req.sb.from('student_guardians').select('student_id,relationship,verified_at,student:profiles!student_guardians_student_id_fkey(id,full_name,grade,class_id)').eq('guardian_id',req.user.id).not('verified_at','is',null);
+ if(error)return res.status(503).json({error:'اطلاعات فرزندان دریافت نشد.'});
+ res.json({children:data||[]});
+});
+
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.listen(PORT,()=>console.log(`School Smart running at http://localhost:${PORT}`));
