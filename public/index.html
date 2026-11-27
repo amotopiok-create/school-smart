@@ -45,7 +45,7 @@
 <div id="welcomeGate" role="dialog" aria-modal="true"><div class="gate-card"><div class="gate-mark">ق</div><span id="gateKicker">مدرسه مشارکتی</span><h1 id="gateTitle">به مدرسه قاضی‌زاده خوش آمدید</h1><p id="gateDescription">خانه‌ای برای یادگیری، رشد و ارتباط میان مدرسه و خانواده.</p><button id="gateContinue">ورود به وب‌سایت ←</button></div></div>
 <script id="welcome-gate-script">
 (function(){var path=location.pathname.replace(/\/+$/,'')||'/';var isPrivate=path==='/owner';var gate=document.getElementById('welcomeGate');if(isPrivate){gate.dataset.private='true';document.getElementById('gateKicker').textContent='فضای مدیریت مدرسه';document.getElementById('gateTitle').textContent='خوش آمدید به فضای خصوصی';document.getElementById('gateDescription').textContent='بخش مدیریت مستقل از وب‌سایت عمومی طراحی شده است. برای دسترسی به اطلاعات مدیریتی، کنترل دسترسی امن لازم است.';document.getElementById('gateContinue').textContent='ادامه به پنل ←';}gate.classList.add('show');document.getElementById('gateContinue').onclick=function(){gate.classList.remove('show');if(isPrivate){document.getElementById('publicHome').classList.add('hidden');document.getElementById('loginView').classList.remove('hidden');}};})();
-</script><link rel="stylesheet" href="/premium.css?v=20261127-1">
+</script><link rel="stylesheet" href="/premium.css?v=20261127-2">
 </head>
 <body>
 <div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>
