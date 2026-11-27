@@ -30,7 +30,17 @@ function updateLoginRole(){if(ownerMode&&!$('#loginRole option[value=admin]'))$(
 $('#loginRole').addEventListener('change',updateLoginRole);updateLoginRole();if(ownerMode){show('loginView');$('#publicHome').classList.add('hidden');$('#registerView').classList.add('hidden');}
 function openLogin(){show('loginView');window.scrollTo({top:0,behavior:'smooth'})}
 function openUserPanel(){if(currentUser){show('appView');loadPage(currentUser.role==='admin'?'manage':'home')}}
-async function loadPublicNews(){const host=$('#publicNewsList');if(!host)return;try{const d=await api('/public/announcements');host.innerHTML=(d.announcements||[]).map(n=>'<article class="public-news-card"><span class="public-news-date">'+esc(new Date(n.created_at).toLocaleDateString('fa-IR'))+'</span><h3>'+esc(n.title)+'</h3><p>'+esc(n.body)+'</p></article>').join('')||'<div class="empty">هنوز اطلاعیه‌ای منتشر نشده است.</div>'}catch(e){host.innerHTML='<div class="empty">اطلاعیه‌ها فعلاً بارگذاری نشدند.</div>'}}
+let publicAnnouncementsCache=[];
+function renderPublicNewsFilter(){
+ const host=$('#publicNewsList'),search=$('#publicNewsSearch'),status=$('#publicNewsSearchStatus');if(!host)return;
+ const q=(search?.value||'').trim().toLocaleLowerCase('fa');
+ const filtered=publicAnnouncementsCache.filter(n=>(String(n.title||'')+' '+String(n.body||'')).toLocaleLowerCase('fa').includes(q));
+ host.innerHTML=filtered.map(n=>'<article class="public-news-card"><span class="public-news-date">'+esc(n.created_at?new Date(n.created_at).toLocaleDateString('fa-IR'):'')+'</span><h3>'+esc(n.title||'اطلاعیه')+'</h3><p>'+esc(n.body||'')+'</p></article>').join('')||'<div class="empty">'+(q?'اطلاعیه‌ای با این عبارت پیدا نشد.':'هنوز اطلاعیه‌ای منتشر نشده است.')+'</div>';
+ if(status)status.textContent=q?filtered.length+' نتیجه پیدا شد.':'';
+}
+async function loadPublicNews(){const host=$('#publicNewsList');if(!host)return;host.innerHTML='<div class="empty">در حال دریافت اطلاعیه‌ها...</div>';try{const d=await api('/public/announcements');publicAnnouncementsCache=Array.isArray(d.announcements)?d.announcements:[];renderPublicNewsFilter()}catch(e){publicAnnouncementsCache=[];host.innerHTML='<div class="empty">اطلاعیه‌ها فعلاً بارگذاری نشدند. برای تلاش دوباره دکمه تازه‌سازی را بزنید.</div>';}}
+$('#publicNewsSearch')?.addEventListener('input',renderPublicNewsFilter);
+$('#publicNewsRefresh')?.addEventListener('click',loadPublicNews);
 $('#publicBtn').onclick=()=>{show('publicHome');loadPublicNews();window.scrollTo({top:0,behavior:'smooth'})};$('#appBtn').onclick=openUserPanel;$('#heroLoginBtn').onclick=()=>currentUser?openUserPanel():openLogin();$('#bottomLoginBtn').onclick=()=>currentUser?openUserPanel():openLogin();
 $('#openLoginBtn').onclick=openLogin;$('#heroRegisterBtn').onclick=()=>{if(!ownerMode&&!currentUser)show('registerView');window.scrollTo({top:0,behavior:'smooth'})};
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const role=$('#loginRole').value;const f=new FormData(e.currentTarget);const obj=Object.fromEntries(f);try{if(role==='admin'){const d=await api('/admin/password-login',{method:'POST',body:JSON.stringify({email:obj.adminEmail||obj.email,password:obj.password})});setUser(d.user);toast('ورود مدیر موفق بود');return}const d=await api('/auth/login',{method:'POST',body:JSON.stringify(obj)});setUser(d.user);toast('ورود با موفقیت انجام شد')}catch(err){toast(err.message)}});
